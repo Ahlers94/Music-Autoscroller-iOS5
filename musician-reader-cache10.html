@@ -435,6 +435,13 @@ var fnLabel       = document.getElementById('filename');
 var speedFill     = document.getElementById('speed-fill');
 var speedValEl    = document.getElementById('speed-val');
 var scrollTimeEl  = document.getElementById('scroll-time');
+setTimeout(function() {
+  if (scrollTimeEl) {
+    scrollTimeEl.textContent = 'TEST';
+  } else {
+    alert('scroll-time element not found');
+  }
+}, 500);
 var thumb         = document.getElementById('scroll-thumb');
 var transpValEl   = document.getElementById('transpose-val');
 var sidebar       = document.getElementById('sidebar');
