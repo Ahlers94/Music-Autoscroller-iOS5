@@ -1088,7 +1088,7 @@ document.getElementById('font-down').onclick = function() {
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(10, level));
   speedValEl.textContent = speedLevel;
-  try { localStorage.setItem('global|speed', speedLevel); } catch(ex) {}
+  setCookie('bk_speed', speedLevel, 365);
   if (scrollDir !== 0) startScroll(scrollDir);
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
@@ -1211,15 +1211,13 @@ function stopScroll() {
 var bookmarkSaveTimer = null;
 
 function saveBookmark() {
-  try {
-    if (!currentFilePath) return;
-    localStorage.setItem('bookmark|file',      currentFilePath);
-    localStorage.setItem('bookmark|name',      currentFileName);
-    localStorage.setItem('bookmark|scroll',    Math.round(scrollPos));
-    localStorage.setItem('bookmark|fontSize',  fontSize);
-    localStorage.setItem('bookmark|font',      currentFont);
-    localStorage.setItem('bookmark|transpose', transposeVal);
-  } catch(ex) {}
+  if (!currentFilePath) return;
+  setCookie('bk_file',   currentFilePath,       90);
+  setCookie('bk_name',   currentFileName,       90);
+  setCookie('bk_scroll', Math.round(scrollPos), 90);
+  setCookie('bk_fs',     fontSize,              90);
+  setCookie('bk_font',   currentFont,           90);
+  setCookie('bk_tr',     transposeVal,          90);
 }
 
 function debouncedSaveBookmark() {
@@ -1228,16 +1226,13 @@ function debouncedSaveBookmark() {
 }
 
 function restoreBookmark() {
-  var path, name, pos, savedFontSize, savedFont, savedTranspose;
-  try {
-    path           = localStorage.getItem('bookmark|file');
-    name           = localStorage.getItem('bookmark|name');
-    pos            = parseInt(localStorage.getItem('bookmark|scroll'),   10) || 0;
-    savedFontSize  = parseInt(localStorage.getItem('bookmark|fontSize'), 10) || 0;
-    savedFont      = localStorage.getItem('bookmark|font') || '';
-    savedTranspose = parseInt(localStorage.getItem('bookmark|transpose'),10) || 0;
-  } catch(ex) { return; }
+  var path  = getCookie('bk_file');
+  var name  = getCookie('bk_name');
   if (!path || !name) return;
+  var pos            = parseInt(getCookie('bk_scroll'), 10) || 0;
+  var savedFontSize  = parseInt(getCookie('bk_fs'),     10) || 0;
+  var savedFont      = getCookie('bk_font') || '';
+  var savedTranspose = parseInt(getCookie('bk_tr'),     10) || 0;
   var xhr = new XMLHttpRequest();
   xhr.open('GET', baseURL() + path, true);
   xhr.onreadystatechange = function() {
@@ -1590,8 +1585,7 @@ document.getElementById('btn-font').onclick = function() {
 };
 
 function restoreGlobalSpeed() {
-  var s;
-  try { s = parseInt(localStorage.getItem('global|speed'), 10); } catch(ex) {}
+  var s = parseInt(getCookie('bk_speed'), 10);
   if (s >= 1 && s <= 10) setSpeed(s);
 }
 
