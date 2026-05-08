@@ -341,7 +341,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   <button class="tbtn tr-btn"     id="tr-up">     <span class="icon">+</span><span class="lbl">Tr</span></button>
   <span id="transpose-reset">rst</span>
   <button class="tbtn btn-font"   id="btn-font">  <span class="icon">Aa</span><span class="lbl">Font</span></button>
-  <span id="filename">♩ TEST123 No file loaded</span>
+  <span id="filename">♩ No file loaded</span>
 </div>
 
 <!-- SCROLL INDICATOR -->
@@ -435,13 +435,6 @@ var fnLabel       = document.getElementById('filename');
 var speedFill     = document.getElementById('speed-fill');
 var speedValEl    = document.getElementById('speed-val');
 var scrollTimeEl  = document.getElementById('scroll-time');
-setTimeout(function() {
-  if (scrollTimeEl) {
-    scrollTimeEl.textContent = 'TEST';
-  } else {
-    alert('scroll-time element not found');
-  }
-}, 500);
 var thumb         = document.getElementById('scroll-thumb');
 var transpValEl   = document.getElementById('transpose-val');
 var sidebar       = document.getElementById('sidebar');
