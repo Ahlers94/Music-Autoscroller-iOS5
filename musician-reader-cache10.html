@@ -1088,11 +1088,10 @@ document.getElementById('font-down').onclick = function() {
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(10, level));
   speedValEl.textContent = speedLevel;
-  setCookie('bk_speed', speedLevel, 365);
   if (scrollDir !== 0) startScroll(scrollDir);
 }
-document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
-document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); };
+document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); setCookie('bk_speed', speedLevel, 365); };
+document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); setCookie('bk_speed', speedLevel, 365); };
 setSpeed(3);
 
 // ── AUTO-SCROLL ──────────────────────────────────────────────
@@ -1101,7 +1100,7 @@ function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 9); }
 // startScroll and stopScroll defined in unified scroll loop above
 
 document.getElementById('btn-up').onclick   = function() { stopScroll(); setScrollPos(0); };
-document.getElementById('btn-stop').onclick = function() { stopScroll(); };
+document.getElementById('btn-stop').onclick = function() { stopScroll(); saveBookmark(); };
 document.getElementById('btn-down').onclick = function() { startScroll(1); };
 
 // Pause on touch, resume on release
@@ -1204,7 +1203,6 @@ function stopScroll() {
   isAutoScrolling = false;
   scrollDir = 0;
   if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
-  saveBookmark();
 }
 
 // ── BOOKMARK ─────────────────────────────────────────────────
@@ -1586,11 +1584,14 @@ document.getElementById('btn-font').onclick = function() {
 
 function restoreGlobalSpeed() {
   var s = parseInt(getCookie('bk_speed'), 10);
-  if (s >= 1 && s <= 10) setSpeed(s);
+  if (s >= 1 && s <= 10) {
+    speedLevel = s;
+    speedValEl.textContent = s;
+  }
 }
 
 restoreGlobalSpeed();
-setTimeout(restoreBookmark, 300);
+setTimeout(restoreBookmark, 500);
 </script>
 </body>
 </html>
