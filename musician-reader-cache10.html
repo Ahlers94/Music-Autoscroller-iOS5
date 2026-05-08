@@ -1093,10 +1093,7 @@ function setSpeed(level) {
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
 document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); };
-(function() {
-  var s; try { s = parseInt(localStorage.getItem('global|speed'), 10); } catch(ex) {}
-  setSpeed((s >= 1 && s <= 10) ? s : 3);
-})();
+setSpeed(3);
 
 // ── AUTO-SCROLL ──────────────────────────────────────────────
 function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 9); }
@@ -1592,7 +1589,14 @@ document.getElementById('btn-font').onclick = function() {
   fontMenuEl.style.display = fontMenuEl.style.display === 'block' ? 'none' : 'block';
 };
 
-restoreBookmark();
+function restoreGlobalSpeed() {
+  var s;
+  try { s = parseInt(localStorage.getItem('global|speed'), 10); } catch(ex) {}
+  if (s >= 1 && s <= 10) setSpeed(s);
+}
+
+restoreGlobalSpeed();
+setTimeout(restoreBookmark, 300);
 </script>
 </body>
 </html>
