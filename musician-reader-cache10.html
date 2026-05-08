@@ -102,7 +102,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   -webkit-box-orient:horizontal;
   -webkit-box-align:center;
   -webkit-box-sizing:border-box;
-  padding-left:80px; padding-right:0;
+  padding-left:4px; padding-right:0;
   white-space:nowrap; overflow:hidden;
 }
 /* Top bar buttons share .tbtn */
@@ -332,6 +332,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 
 <!-- TOP BAR: [Top][☰][Browse][Tr-][Val][Tr+][rst][Font][Title] -->
 <div id="topbar">
+  <span id="scroll-time" style="display:inline-block;color:#888;font-size:10px;font-family:'Courier New',Courier,monospace;vertical-align:middle;line-height:44px;padding:0 4px;min-width:34px;">--:--</span>
   <button class="tbtn btn-top"    id="btn-up">    <span class="icon">▲</span><span class="lbl">Top</span></button>
   <button class="tbtn"            id="menu-btn">  <span class="icon">☰</span><span class="lbl">List</span></button>
   <button class="tbtn btn-browse" id="btn-browse"><span class="icon">♩</span><span class="lbl">Open</span></button>
@@ -376,10 +377,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   </div>
   <div class="corridor" id="corridor-4">
     <button class="btn btn-adj" id="speed-down"><span class="icon">&#9660;</span><span class="lbl">Slow</span></button>
-    <span style="display:inline-block;text-align:center;vertical-align:middle;width:28px;">
-      <span id="speed-val" style="display:block;color:#c8a84b;font-size:14px;font-family:'Courier New',Courier,monospace;line-height:1.2;">3</span>
-      <span id="scroll-time" style="display:block;color:#888;font-size:9px;font-family:'Courier New',Courier,monospace;line-height:1.2;">--:--</span>
-    </span>
+    <span id="speed-val"></span>
     <button class="btn btn-adj" id="speed-up"><span class="icon">&#9650;</span><span class="lbl">Fast</span></button>
   </div>
 </div>
