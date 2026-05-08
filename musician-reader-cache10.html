@@ -1088,11 +1088,15 @@ document.getElementById('font-down').onclick = function() {
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(10, level));
   speedValEl.textContent = speedLevel;
+  try { localStorage.setItem('global|speed', speedLevel); } catch(ex) {}
   if (scrollDir !== 0) startScroll(scrollDir);
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
 document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); };
-setSpeed(3);
+(function() {
+  var s; try { s = parseInt(localStorage.getItem('global|speed'), 10); } catch(ex) {}
+  setSpeed((s >= 1 && s <= 10) ? s : 3);
+})();
 
 // ── AUTO-SCROLL ──────────────────────────────────────────────
 function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 9); }
@@ -1212,9 +1216,12 @@ var bookmarkSaveTimer = null;
 function saveBookmark() {
   try {
     if (!currentFilePath) return;
-    localStorage.setItem('bookmark|file',   currentFilePath);
-    localStorage.setItem('bookmark|name',   currentFileName);
-    localStorage.setItem('bookmark|scroll', Math.round(scrollPos));
+    localStorage.setItem('bookmark|file',      currentFilePath);
+    localStorage.setItem('bookmark|name',      currentFileName);
+    localStorage.setItem('bookmark|scroll',    Math.round(scrollPos));
+    localStorage.setItem('bookmark|fontSize',  fontSize);
+    localStorage.setItem('bookmark|font',      currentFont);
+    localStorage.setItem('bookmark|transpose', transposeVal);
   } catch(ex) {}
 }
 
@@ -1224,11 +1231,14 @@ function debouncedSaveBookmark() {
 }
 
 function restoreBookmark() {
-  var path, name, pos;
+  var path, name, pos, savedFontSize, savedFont, savedTranspose;
   try {
-    path = localStorage.getItem('bookmark|file');
-    name = localStorage.getItem('bookmark|name');
-    pos  = parseInt(localStorage.getItem('bookmark|scroll'), 10) || 0;
+    path           = localStorage.getItem('bookmark|file');
+    name           = localStorage.getItem('bookmark|name');
+    pos            = parseInt(localStorage.getItem('bookmark|scroll'),   10) || 0;
+    savedFontSize  = parseInt(localStorage.getItem('bookmark|fontSize'), 10) || 0;
+    savedFont      = localStorage.getItem('bookmark|font') || '';
+    savedTranspose = parseInt(localStorage.getItem('bookmark|transpose'),10) || 0;
   } catch(ex) { return; }
   if (!path || !name) return;
   var xhr = new XMLHttpRequest();
@@ -1240,9 +1250,11 @@ function restoreBookmark() {
       currentFileName = name;
       fnLabel.textContent = '\u266a ' + name;
       rawText = xhr.responseText;
-      transposeVal = 0;
-      transpValEl.textContent = '0';
-      transpValEl.style.color = '#7e9ecb';
+      if (savedFontSize >= 12 && savedFontSize <= 40) fontSize = savedFontSize;
+      if (savedFont) currentFont = savedFont;
+      transposeVal = Math.max(-11, Math.min(11, savedTranspose));
+      transpValEl.textContent = transposeVal === 0 ? '0' : (transposeVal > 0 ? '+' + transposeVal : '' + transposeVal);
+      transpValEl.style.color = transposeVal === 0 ? '#7e9ecb' : '#c8a84b';
       loadText(rawText);
       if (pos > 0) {
         setTimeout(function() { setScrollPos(pos); }, 150);
