@@ -405,7 +405,11 @@ var currentPath = BASE_PATH;
 // ── STATE ────────────────────────────────────────────────────
 var scrollDir    = 0;
 var speedLevel   = 3;
-var fontSize     = 18;
+var fontSize = 18;
+try {
+  var _fs = parseInt(localStorage.getItem('fontSize'), 10);
+  if (_fs >= 12 && _fs <= 40) fontSize = _fs;
+} catch(ex) {}
 var isDragging   = false;
 var currentFont  = '"Courier New", Courier, monospace';
 var rawText      = '';       // original file text (untransposed)
@@ -1061,10 +1065,8 @@ function renderText() {
 
 // ── FONT SIZE ────────────────────────────────────────────────
 function applyFontSize() {
-  // Update chart text
   var pre = content.getElementsByTagName('pre')[0];
   if (pre) pre.style.fontSize = fontSize + 'px';
-  // Update file list items and setlist items proportionally
   var fileAnchors = fileList.getElementsByTagName('a');
   for (var i = 0; i < fileAnchors.length; i++) {
     fileAnchors[i].style.fontSize = fontSize + 'px';
@@ -1074,6 +1076,7 @@ function applyFontSize() {
   for (var j = 0; j < fileItems.length; j++) {
     fileItems[j].style.height = (fontSize + 14) + 'px';
   }
+  try { localStorage.setItem('fontSize', fontSize); } catch(ex) {}
 }
 document.getElementById('font-up').onclick = function() {
   fontSize = Math.min(fontSize + 2, 40);
