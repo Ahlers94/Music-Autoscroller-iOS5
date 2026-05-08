@@ -202,10 +202,10 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 #corridor-3 { margin-left:78px; }
 #corridor-4 { margin-left:80px; }
 #speed-val {
-  display:block;
+  display:inline-block;
   color:#c8a84b; font-size:14px; text-align:center;
   font-family:"Courier New",Courier,monospace;
-  width:28px; line-height:1;
+  width:28px; line-height:56px; vertical-align:middle;
 }
 .btn, .btn-adj {
   display:inline-block;
@@ -376,10 +376,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   </div>
   <div class="corridor" id="corridor-4">
     <button class="btn btn-adj"  id="speed-down"><span class="icon">&#9660;</span><span class="lbl">Slow</span></button>
-    <span style="display:inline-block;width:28px;text-align:center;vertical-align:middle;line-height:1;">
-      <span id="speed-val" style="display:block;color:#c8a84b;font-size:14px;font-family:'Courier New',Courier,monospace;text-align:center;">3</span>
-      <span id="scroll-time" style="display:block;font-size:9px;color:#888;font-family:'Courier New',Courier,monospace;text-align:center;margin-top:3px;">--:--</span>
-    </span>
+    <span id="speed-val"></span><span id="scroll-time" style="display:inline-block;font-size:9px;color:#888;font-family:'Courier New',Courier,monospace;vertical-align:middle;margin-left:2px;">--:--</span>
     <button class="btn btn-adj"  id="speed-up">  <span class="icon">&#9650;</span><span class="lbl">Fast</span></button>
   </div>
 </div>
