@@ -1179,6 +1179,7 @@ scroller.ontouchend = function(e) {
       if (isAutoScrolling) startAutoScrollTimer();
     }, 400);
   }
+  debouncedSaveBookmark();
 };
 scroller.ontouchcancel = scroller.ontouchend;
 
@@ -1202,6 +1203,54 @@ function stopScroll() {
   isAutoScrolling = false;
   scrollDir = 0;
   if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
+  saveBookmark();
+}
+
+// ── BOOKMARK ─────────────────────────────────────────────────
+var bookmarkSaveTimer = null;
+
+function saveBookmark() {
+  try {
+    if (!currentFilePath) return;
+    localStorage.setItem('bookmark|file',   currentFilePath);
+    localStorage.setItem('bookmark|name',   currentFileName);
+    localStorage.setItem('bookmark|scroll', Math.round(scrollPos));
+  } catch(ex) {}
+}
+
+function debouncedSaveBookmark() {
+  if (bookmarkSaveTimer) clearTimeout(bookmarkSaveTimer);
+  bookmarkSaveTimer = setTimeout(saveBookmark, 800);
+}
+
+function restoreBookmark() {
+  var path, name, pos;
+  try {
+    path = localStorage.getItem('bookmark|file');
+    name = localStorage.getItem('bookmark|name');
+    pos  = parseInt(localStorage.getItem('bookmark|scroll'), 10) || 0;
+  } catch(ex) { return; }
+  if (!path || !name) return;
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', baseURL() + path, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) {
+      currentFilePath = path;
+      currentFileName = name;
+      fnLabel.textContent = '\u266a ' + name;
+      rawText = xhr.responseText;
+      transposeVal = 0;
+      transpValEl.textContent = '0';
+      transpValEl.style.color = '#7e9ecb';
+      loadText(rawText);
+      if (pos > 0) {
+        setTimeout(function() { setScrollPos(pos); }, 150);
+      }
+    }
+  };
+  xhr.onerror = function() {};
+  xhr.send();
 }
 
 // ── SCROLL THUMB ─────────────────────────────────────────────
@@ -1464,6 +1513,7 @@ function loadRemoteFile(path, name) {
       transpValEl.textContent = '0';
       transpValEl.style.color = '#7e9ecb';
       loadText(rawText);
+      saveBookmark();
       browserPanel.style.display = 'none';
       // update active setlist highlight
       for (var i = 0; i < setlist.length; i++) {
@@ -1529,6 +1579,8 @@ document.getElementById('btn-font').onclick = function() {
   browserPanel.style.display = 'none';
   fontMenuEl.style.display = fontMenuEl.style.display === 'block' ? 'none' : 'block';
 };
+
+restoreBookmark();
 </script>
 </body>
 </html>
