@@ -1561,7 +1561,7 @@ function loadText(text) {
   if (scrollLayer) scrollLayer.style.WebkitTransform = 'translate3d(0,0,0)';
   stopScroll();
   updateThumb();
-  updateScrollTime();
+  setTimeout(function() { updateScrollTime(); }, 150);
 }
 
 // ── FONT MENU ────────────────────────────────────────────────
