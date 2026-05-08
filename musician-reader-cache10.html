@@ -377,6 +377,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   <div class="corridor" id="corridor-4">
     <button class="btn btn-adj"  id="speed-down"><span class="icon">&#9660;</span><span class="lbl">Slow</span></button>
     <span id="speed-val">3</span>
+    <span id="scroll-time" style="display:block;font-size:9px;color:#888;text-align:center;font-family:'Courier New',Courier,monospace;line-height:1;margin-top:2px;width:28px;">--:--</span>
     <button class="btn btn-adj"  id="speed-up">  <span class="icon">&#9650;</span><span class="lbl">Fast</span></button>
   </div>
 </div>
@@ -433,6 +434,7 @@ var browserPath   = document.getElementById('browser-path');
 var fnLabel       = document.getElementById('filename');
 var speedFill     = document.getElementById('speed-fill');
 var speedValEl    = document.getElementById('speed-val');
+var scrollTimeEl  = document.getElementById('scroll-time');
 var thumb         = document.getElementById('scroll-thumb');
 var transpValEl   = document.getElementById('transpose-val');
 var sidebar       = document.getElementById('sidebar');
@@ -1091,7 +1093,17 @@ document.getElementById('font-down').onclick = function() {
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(10, level));
   speedValEl.textContent = speedLevel;
+  updateScrollTime();
   if (scrollDir !== 0) startScroll(scrollDir);
+}
+function updateScrollTime() {
+  var max = getScrollMax();
+  if (max <= 0) { scrollTimeEl.textContent = '--:--'; return; }
+  var totalMs = (max / pxPerTick()) * 16;
+  var totalSec = Math.round(totalMs / 1000);
+  var m = Math.floor(totalSec / 60);
+  var s = totalSec % 60;
+  scrollTimeEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); setCookie('bk_speed', speedLevel, 365); };
 document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); setCookie('bk_speed', speedLevel, 365); };
@@ -1549,6 +1561,7 @@ function loadText(text) {
   if (scrollLayer) scrollLayer.style.WebkitTransform = 'translate3d(0,0,0)';
   stopScroll();
   updateThumb();
+  updateScrollTime();
 }
 
 // ── FONT MENU ────────────────────────────────────────────────

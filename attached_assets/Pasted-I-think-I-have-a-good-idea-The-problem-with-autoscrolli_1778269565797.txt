@@ -1,0 +1,33 @@
+I think I have a good idea. The problem with autoscrolling is that I don't know how long it will take to scroll through the whole song.  Is there a way to know exactly how long that will take and in addition to giving a number for the autoscroll speed, also show the time it will take to scroll through the file at the current scroll speed?  This can be recalculated as well.  Only show me the relevant pieces of code to this function.3:45 PMClaude responded: Great idea.Great idea. The math is straightforward — you already have everything needed.
+Time to scroll = scrollMax / pxPerTick() × 16ms per tick
+Here are the only pieces you need to touch:
+
+1. Replace the setSpeed function to also update the time display:
+javascriptfunction setSpeed(level) {
+  speedLevel = Math.max(1, Math.min(10, level));
+  speedValEl.textContent = speedLevel;
+  updateScrollTime();
+  if (scrollDir !== 0) startScroll(scrollDir);
+}
+
+2. Add the updateScrollTime function right after setSpeed:
+javascriptfunction updateScrollTime() {
+  var max = getScrollMax();
+  if (max <= 0) { scrollTimeEl.textContent = '--:--'; return; }
+  var totalMs = (max / pxPerTick()) * 16;
+  var totalSec = Math.round(totalMs / 1000);
+  var m = Math.floor(totalSec / 60);
+  var s = totalSec % 60;
+  scrollTimeEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+}
+
+3. Add a scrollTimeEl DOM ref near your other DOM refs at the top of the script:
+javascriptvar scrollTimeEl = document.getElementById('scroll-time');
+
+4. Add the display element inside #corridor-4 in the toolbar HTML, between the speed value and the fast button:
+html<span id="scroll-time" style="display:block;font-size:9px;color:#888;text-align:center;font-family:'Courier New',Courier,monospace;line-height:1;margin-top:2px;width:28px;">--:--</span>
+
+5. Call updateScrollTime() inside loadText() after updateThumb() so it recalculates whenever a new file loads:
+javascriptupdateScrollTime();
+
+The time display will show --:-- until a file is loaded, then update whenever speed changes or a new file loads. No timers, no extra DOM queries on scroll — getScrollMax() is already cached by the scroll system.
