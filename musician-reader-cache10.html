@@ -102,7 +102,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   -webkit-box-orient:horizontal;
   -webkit-box-align:center;
   -webkit-box-sizing:border-box;
-  padding-left:80px; padding-right:0;
+  padding-left:4px; padding-right:0;
   white-space:nowrap; overflow:hidden;
 }
 /* Top bar buttons share .tbtn */
@@ -332,6 +332,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 
 <!-- TOP BAR: [Top][☰][Browse][Tr-][Val][Tr+][rst][Font][Title] -->
 <div id="topbar">
+  <span id="scroll-time" style="display:inline-block;color:#888;font-size:10px;font-family:'Courier New',Courier,monospace;line-height:44px;padding:0 4px;min-width:34px;vertical-align:middle;">--:--</span>
   <button class="tbtn btn-top"    id="btn-up">    <span class="icon">▲</span><span class="lbl">Top</span></button>
   <button class="tbtn"            id="menu-btn">  <span class="icon">☰</span><span class="lbl">List</span></button>
   <button class="tbtn btn-browse" id="btn-browse"><span class="icon">♩</span><span class="lbl">Open</span></button>
@@ -403,7 +404,8 @@ var BASE_PATH = '/My Documents';
 var currentPath = BASE_PATH;
 
 // ── STATE ────────────────────────────────────────────────────
-var scrollDir    = 0;
+var scrollDir      = 0;
+var cachedScrollMax = 0;
 var speedLevel   = 3;
 var fontSize     = 18;
 var isDragging   = false;
@@ -428,6 +430,7 @@ var browserStatus = document.getElementById('browser-status');
 var browserPath   = document.getElementById('browser-path');
 var fnLabel       = document.getElementById('filename');
 var speedFill     = document.getElementById('speed-fill');
+var scrollTimeEl  = document.getElementById('scroll-time');
 var speedValEl    = document.getElementById('speed-val');
 var thumb         = document.getElementById('scroll-thumb');
 var transpValEl   = document.getElementById('transpose-val');
@@ -1088,7 +1091,17 @@ document.getElementById('font-down').onclick = function() {
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(20, level));
   speedValEl.textContent = speedLevel;
+  showScrollTime();
   if (scrollDir !== 0) startScroll(scrollDir);
+}
+function showScrollTime() {
+  try {
+    if (!scrollTimeEl || cachedScrollMax <= 0) return;
+    var totalSec = Math.round((cachedScrollMax / (0.024 * Math.pow(32, (speedLevel - 1) / 19))) * 16.667 / 1000);
+    var m = Math.floor(totalSec / 60);
+    var s = totalSec % 60;
+    scrollTimeEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  } catch(ex) {}
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
 document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); };
@@ -1544,6 +1557,12 @@ function loadText(text) {
   if (scrollLayer) scrollLayer.style.WebkitTransform = 'translate3d(0,0,0)';
   stopScroll();
   updateThumb();
+  setTimeout(function() {
+    try {
+      cachedScrollMax = Math.max(0, scrollLayer.offsetHeight - scroller.offsetHeight);
+      showScrollTime();
+    } catch(ex) {}
+  }, 150);
 }
 
 // ── FONT MENU ────────────────────────────────────────────────
