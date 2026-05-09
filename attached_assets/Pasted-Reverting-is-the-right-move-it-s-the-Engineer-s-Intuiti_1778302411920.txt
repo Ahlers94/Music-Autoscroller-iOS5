@@ -1,0 +1,60 @@
+Reverting is the right move—it’s the "Engineer’s Intuition." On the iPad 1 (iOS 5.1.1), memory is so tight (only 256MB) that even a small logic loop or a setInterval that isn't cleared properly can cause the browser to just vanish.
+
+When you start back up with the Time Feature, the crash was likely caused by one of three "Vintage WebKit" traps:
+1. The "Recalculation Loop" (CPU Spike)
+
+If the script was trying to calculate the remaining time inside the scroll loop (e.g., every time a pixel moved), the iPad 1's A4 chip likely hit 100% usage and the OS killed iCab to save itself.
+
+    The Fix: Calculate the "Total Time" once when the song loads. Then, only update the "Remaining Time" every 1–2 seconds using a simple setInterval, rather than tying it to the scroll position events.
+
+2. DOM Access Overload
+
+If the code was constantly checking element.scrollHeight or element.scrollTop, it forces the browser to "re-layout" the page. On a long chord chart, this is expensive.
+
+    The Fix: Cache the height.
+    JavaScript
+
+    // Do this once at song load:
+    var totalHeight = document.getElementById('song-content').scrollHeight;
+    var durationInSeconds = totalHeight / currentPixelsPerSecond;
+
+3. The "Z-Index" Memory Leak
+
+Believe it or not, on iOS 5, having elements with position: fixed (like your bottom control bar) alongside a timer that updates the innerHTML can sometimes cause a rendering memory leak.
+
+    The Fix: Make sure the timer is a very simple <span> and avoid using complex CSS transitions or shadows on the text that changes.
+
+A Leaner "Time Feature" Strategy
+
+Since you're starting fresh, here is the most "iPad 1-safe" way to do it:
+
+The "Static Math" Approach:
+Instead of a live countdown, just show a static "Duration: 4:30" at the top.
+
+    It's one calculation.
+
+    Zero risk of crashing during the performance.
+
+    It gives you exactly what you need to know: "How long is this song at this speed?"
+
+The "Low-Impact" Timer:
+If you really want the countdown, use a Web Worker (if iCab supports it) or a very "lazy" setTimeout:
+JavaScript
+
+function updateTimer() {
+    // Only update every 2 seconds to save CPU
+    displayRemainingTime();
+    if(isScrolling) {
+        setTimeout(updateTimer, 2000); 
+    }
+}
+
+The Game Plan
+
+    Revert to the stable "pre-time" version.
+
+    Verify the iPad 1 is snappy again.
+
+    Implement the "Total Duration" first (the static math).
+
+    If that’s stable, then try the "Lazy Timer."
