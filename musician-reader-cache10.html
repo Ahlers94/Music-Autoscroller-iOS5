@@ -377,7 +377,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   </div>
   <div class="corridor" id="corridor-4">
     <button class="btn btn-adj"  id="speed-down"><span class="icon">&#9660;</span><span class="lbl">Slow</span></button>
-    <span id="speed-val">3</span>
+    <span id="speed-val">5</span>
     <button class="btn btn-adj"  id="speed-up">  <span class="icon">&#9650;</span><span class="lbl">Fast</span></button>
   </div>
 </div>
@@ -1089,24 +1089,26 @@ document.getElementById('font-down').onclick = function() {
 
 // ── SPEED SLIDER ─────────────────────────────────────────────
 function setSpeed(level) {
-  speedLevel = Math.max(1, Math.min(10, level));
+  speedLevel = Math.max(1, Math.min(20, level));
   speedValEl.textContent = speedLevel;
   showScrollTime();
   if (scrollDir !== 0) startScroll(scrollDir);
 }
 function showScrollTime() {
-  if (!scrollTimeEl || cachedScrollMax <= 0) return;
-  var totalSec = Math.round((cachedScrollMax / (0.024 * Math.pow(32, (speedLevel - 1) / 9))) * 16.667 / 1000);
-  var m = Math.floor(totalSec / 60);
-  var s = totalSec % 60;
-  scrollTimeEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  try {
+    if (!scrollTimeEl || cachedScrollMax <= 0) return;
+    var totalSec = Math.round((cachedScrollMax / (0.024 * Math.pow(32, (speedLevel - 1) / 19))) * 16.667 / 1000);
+    var m = Math.floor(totalSec / 60);
+    var s = totalSec % 60;
+    scrollTimeEl.textContent = m + ':' + (s < 10 ? '0' : '') + s;
+  } catch(ex) {}
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
 document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); };
-setSpeed(3);
+setSpeed(5);
 
 // ── AUTO-SCROLL ──────────────────────────────────────────────
-function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 9); }
+function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 19); }
 
 // startScroll and stopScroll defined in unified scroll loop above
 
@@ -1556,8 +1558,10 @@ function loadText(text) {
   stopScroll();
   updateThumb();
   setTimeout(function() {
-    cachedScrollMax = Math.max(0, scrollLayer.offsetHeight - scroller.offsetHeight);
-    showScrollTime();
+    try {
+      cachedScrollMax = Math.max(0, scrollLayer.offsetHeight - scroller.offsetHeight);
+      showScrollTime();
+    } catch(ex) {}
   }, 150);
 }
 
