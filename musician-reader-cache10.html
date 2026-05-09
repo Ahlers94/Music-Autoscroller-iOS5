@@ -1100,7 +1100,7 @@ function updateScrollTime() {
   if (!scrollTimeEl || !scrollLayer) return;
   var max = getScrollMax();
   if (max <= 0) { scrollTimeEl.textContent = '--:--'; return; }
-  var totalMs = (max / pxPerTick()) * 16;
+  var totalMs = (max / pxPerTick()) * 16.667;
   var totalSec = Math.round(totalMs / 1000);
   var m = Math.floor(totalSec / 60);
   var s = totalSec % 60;
