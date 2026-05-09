@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sheet Reader</title>
+<style>
+* { margin:0; padding:0; -webkit-box-sizing:border-box; box-sizing:border-box; }
+html, body { height:100%; overflow:hidden; }
+body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,monospace; font-size:18px; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  position:fixed; top:0; left:-75%; bottom:0; width:75%;
+  background:#161616; border-right:2px solid #c8a84b;
+  z-index:500; overflow:hidden;
+  -webkit-transition: left 0.25s ease; transition: left 0.25s ease;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-orient:vertical; -webkit-flex-direction:column; flex-direction:column;
+}
+#sidebar.open { left:0; }
+#sidebar-overlay {
+  display:none; position:fixed; top:0; left:0; right:0; bottom:0;
+  background:rgba(0,0,0,0.5); z-index:499;
+}
+#sidebar-overlay.open { display:block; }
+
+#sidebar-header {
+  padding:10px 12px; background:#111; border-bottom:1px solid #2a2a2a;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center; gap:8px;
+}
+#sidebar-header h2 { color:#c8a84b; font-size:14px; -webkit-box-flex:1; -webkit-flex:1; flex:1; }
+
+.sb-btn {
+  background:#2a2a2a; color:#c8a84b; border:1px solid #555; border-radius:4px;
+  font-size:11px; font-family:"Courier New",Courier,monospace;
+  padding:4px 8px; cursor:pointer; -webkit-appearance:none; white-space:nowrap;
+}
+
+#setlist-name-row {
+  padding:8px 12px; border-bottom:1px solid #1e1e1e;
+  display:-webkit-box; display:-webkit-flex; display:flex; gap:6px;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+}
+#setlist-name {
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  background:#1e1e1e; border:1px solid #444; border-radius:4px;
+  color:#f0e8d0; font-size:13px; font-family:"Courier New",Courier,monospace;
+  padding:5px 8px; -webkit-appearance:none;
+}
+
+#setlist-items {
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  overflow-y:auto; -webkit-overflow-scrolling:touch; list-style:none;
+}
+
+.sl-item {
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center;
+  border-bottom:1px solid #1e1e1e; padding:0 8px;
+  -webkit-tap-highlight-color:rgba(200,168,75,0.1);
+}
+.sl-item.dragging { opacity:0.4; }
+.sl-item.drag-over { border-top:2px solid #c8a84b; }
+
+.sl-handle {
+  color:#444; font-size:18px; padding:12px 8px 12px 0; cursor:grab; user-select:none;
+  -webkit-user-select:none;
+}
+.sl-name {
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  color:#f0e8d0; font-size:13px; font-family:"Courier New",Courier,monospace;
+  padding:12px 0; cursor:pointer; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.sl-name.active { color:#c8a84b; }
+.sl-del { color:#cb7e7e; font-size:18px; padding:12px 0 12px 8px; cursor:pointer; }
+
+#sidebar-footer {
+  padding:8px 12px; border-top:1px solid #2a2a2a; background:#111;
+  display:-webkit-box; display:-webkit-flex; display:flex; gap:6px; flex-wrap:wrap;
+}
+
+#setlist-status {
+  padding:6px 12px; font-size:11px; color:#555;
+  font-family:"Courier New",Courier,monospace; min-height:24px;
+}
+
+/* import textarea */
+#import-area {
+  display:none; width:100%; height:80px; margin-top:6px;
+  background:#1e1e1e; border:1px solid #444; border-radius:4px;
+  color:#f0e8d0; font-size:11px; font-family:"Courier New",Courier,monospace;
+  padding:6px; -webkit-appearance:none; resize:none;
+}
+
+/* ── TOP BAR ── */
+#topbar {
+  position:fixed; top:0; left:0; right:0; height:44px;
+  background:#111; border-bottom:2px solid #c8a84b; z-index:100;
+  display:-webkit-box;
+  -webkit-box-orient:horizontal;
+  -webkit-box-align:center;
+  -webkit-box-sizing:border-box;
+  padding-left:80px; padding-right:0;
+  white-space:nowrap; overflow:hidden;
+}
+/* Top bar buttons share .tbtn */
+.tbtn {
+  display:inline-block;
+  background:#2a2a2a; color:#c8a84b;
+  border:1px solid #444; -webkit-border-radius:4px;
+  width:44px; height:36px; cursor:pointer; text-align:center;
+  -webkit-tap-highlight-color:rgba(200,168,75,0.2);
+  -webkit-appearance:none; -webkit-box-flex:0;
+  padding:0; margin:0 2px; vertical-align:middle;
+  font-family:"Courier New",Courier,monospace;
+}
+.tbtn .icon { font-size:13px; display:block; line-height:1; margin-top:5px; }
+.tbtn .lbl  { font-size:8px;  display:block; margin-top:1px; color:#888; }
+.tbtn.tr-btn  { color:#7e9ecb; border-color:#4a5a7a; width:32px; }
+.tbtn.btn-top { color:#aaa; }
+.tbtn.btn-browse { color:#7e9ecb; }
+.tbtn.btn-font   { color:#c8a84b; }
+#menu-btn {
+  display:inline-block;
+  background:none; border:none; color:#c8a84b; font-size:18px;
+  cursor:pointer; padding:0 6px; margin:0 2px;
+  -webkit-tap-highlight-color:rgba(200,168,75,0.3); line-height:44px;
+  -webkit-appearance:none; -webkit-box-flex:0; vertical-align:middle;
+}
+#transpose-val {
+  display:inline-block;
+  min-width:24px; text-align:center; font-size:12px; color:#7e9ecb;
+  font-family:"Courier New",Courier,monospace; vertical-align:middle;
+  -webkit-box-flex:0; padding:0 2px;
+}
+#transpose-reset {
+  display:inline-block;
+  font-size:10px; color:#888; font-family:"Courier New",Courier,monospace;
+  cursor:pointer; text-decoration:underline; padding:0 4px;
+  vertical-align:middle; -webkit-box-flex:0;
+}
+#filename {
+  display:inline-block;
+  color:#c8a84b; font-size:12px;
+  -webkit-box-flex:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  text-align:right; padding-left:6px; vertical-align:middle;
+  line-height:44px; max-width:200px;
+}
+/* Remove old separate tr-btn rule */
+.tr-btn { color:#7e9ecb; }
+
+/* transpose bar removed — merged into topbar */
+#transpose-bar label { color:#888; font-size:12px; font-family:"Courier New",Courier,monospace; }
+
+
+/* ── MAIN SCROLLER ── */
+#scroller {
+  position:fixed; top:44px; bottom:56px; left:0; right:0;
+  overflow:hidden; padding:0;
+  -webkit-transform:translateZ(0);
+  -webkit-backface-visibility:hidden;
+}
+#scroll-layer {
+  position:absolute; top:0; left:0; right:0;
+  padding:16px 18px;
+  -webkit-transform:translate3d(0,0,0);
+  -webkit-backface-visibility:hidden;
+  will-change:transform;
+}
+#content { white-space:pre-wrap; word-wrap:break-word; min-height:100%; }
+#placeholder { text-align:center; margin-top:60px; }
+#placeholder .big { font-size:48px; color:#333; }
+#placeholder p { margin-top:12px; font-size:15px; line-height:1.8; color:#555; }
+
+/* ── TOOLBAR — portrait 768px leapfrog ── */
+#toolbar {
+  position:fixed; bottom:0; left:0; right:0; height:56px;
+  background:#111; border-top:2px solid #c8a84b; z-index:100;
+  display:-webkit-box;
+  -webkit-box-orient:horizontal;
+  -webkit-box-pack:start;
+  -webkit-box-align:center;
+  -webkit-box-sizing:border-box;
+  padding-left:71px; padding-right:0;
+  white-space:nowrap; overflow:hidden;
+}
+.corridor {
+  display:inline-block;
+  height:56px; line-height:56px;
+  white-space:nowrap; vertical-align:middle;
+}
+.corridor .btn, .corridor .btn-adj {
+  display:inline-block;
+  width:42px; height:50px; margin:0 1px;
+  vertical-align:middle; line-height:1;
+}
+#corridor-1 { margin-left:0; }
+#corridor-2 { margin-left:39px; }
+#corridor-3 { margin-left:78px; }
+#corridor-4 { margin-left:80px; }
+#speed-val {
+  display:inline-block;
+  color:#c8a84b; font-size:14px; text-align:center;
+  font-family:"Courier New",Courier,monospace;
+  width:28px; line-height:56px; vertical-align:middle;
+}
+.btn, .btn-adj {
+  display:inline-block;
+  height:50px; border:none;
+  font-size:10px; font-family:"Courier New",Courier,monospace;
+  cursor:pointer; -webkit-tap-highlight-color:rgba(200,168,75,0.3);
+  -webkit-appearance:none; padding:0; -webkit-border-radius:4px;
+  text-align:center; vertical-align:middle; white-space:nowrap;
+}
+.btn .icon, .btn-adj .icon { font-size:15px; display:block; line-height:1; margin-top:8px; }
+.btn .lbl,  .btn-adj .lbl  { font-size:9px;  display:block; margin-top:3px; color:#aaa; }
+.btn-adj { background:#1e1e1e; color:#c8a84b; }
+.btn-down   { background:#2d3a2d; color:#7ecb7e; border:1px solid #4a7a4a; }
+.btn-stop   { background:#3a2d2d; color:#cb7e7e; border:1px solid #7a4a4a; }
+.btn-prev, .btn-next { background:#2d2d3a; color:#7e9ecb; border:1px solid #4a5a7a; }
+.btn:active { opacity:0.7; }
+.btn .icon { font-size:18px; display:block; line-height:1; }
+.btn .lbl  { font-size:10px; display:block; margin-top:2px; }
+
+.btn-top    { background:#2d2d2d; color:#aaa;    border:1px solid #444; }
+.btn-stop   { background:#3a2d2d; color:#cb7e7e; border:1px solid #7a4a4a; }
+.btn-down   { background:#2d3a2d; color:#7ecb7e; border:1px solid #4a7a4a; }
+.btn-prev   { background:#2d2d3a; color:#7e9ecb; border:1px solid #4a5a7a; }
+.btn-next   { background:#2d2d3a; color:#7e9ecb; border:1px solid #4a5a7a; }
+.btn-browse { background:#2d2d3a; color:#7e9ecb; border:1px solid #4a5a7a; }
+.btn-font   { background:#3a332d; color:#c8a84b; border:1px solid #c8a84b; }
+
+/* ── OVERLAPPING PANELS ── */
+#browser-panel, #font-menu {
+  display:none; position:fixed;
+  top:44px; left:0; right:0; bottom:56px;
+  background:#111; z-index:200; overflow-y:auto; -webkit-overflow-scrolling:touch;
+}
+#font-menu { z-index:300; }
+
+
+#browser-header {
+  padding:10px 14px; background:#1a1a1a; border-bottom:1px solid #2a2a2a;
+  display:-webkit-box; display:-webkit-flex; display:flex;
+  -webkit-box-align:center; -webkit-align-items:center; align-items:center; gap:8px;
+}
+#browser-path {
+  color:#888; font-size:12px; font-family:"Courier New",Courier,monospace;
+  -webkit-box-flex:1; -webkit-flex:1; flex:1;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+#browser-close { color:#cb7e7e; font-size:13px; font-family:"Courier New",Courier,monospace; cursor:pointer; }
+#browser-status { padding:20px 14px; color:#555; font-size:14px; font-family:"Courier New",Courier,monospace; text-align:center; line-height:1.8; }
+#file-list { list-style:none; }
+.file-item { cursor:pointer; -webkit-tap-highlight-color:rgba(200,168,75,0.15); }
+.file-item:active { background:#1e1e1e; }
+.file-item a { text-decoration:none; font-family:"Courier New",Courier,monospace; font-size:13px; }
+.file-item.is-dir   a { color:#c8a84b; }
+.file-item.is-txt   a { color:#f0e8d0; }
+.file-item.is-other a { color:#444; }
+.file-icon { margin-right:4px; }
+
+.font-option {
+  padding:16px 20px; border-bottom:1px solid #1e1e1e;
+  cursor:pointer; color:#f0e8d0; font-size:17px;
+  -webkit-tap-highlight-color:rgba(200,168,75,0.2);
+}
+.font-option:active { background:#1e1e1e; }
+.font-option.selected { color:#c8a84b; }
+
+/* ── SCROLL INDICATOR ── */
+#scroll-indicator { position:fixed; top:44px; right:0; bottom:56px; width:4px; z-index:50; }
+#scroll-thumb { position:absolute; right:0; width:4px; background:#c8a84b; border-radius:2px; opacity:0.6; top:0; height:40px; }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR OVERLAY -->
+<div id="sidebar-overlay"></div>
+
+<!-- SIDEBAR -->
+<div id="sidebar">
+  <!-- Tab switcher -->
+  <div style="display:-webkit-box;display:flex;border-bottom:1px solid #2a2a2a;background:#111;">
+    <button id="tab-setlist" class="sb-btn" style="-webkit-box-flex:1;flex:1;border-radius:0;border:none;border-right:1px solid #2a2a2a;padding:10px;font-size:13px;color:#c8a84b;">Setlist</button>
+    <button id="tab-history" class="sb-btn" style="-webkit-box-flex:1;flex:1;border-radius:0;border:none;padding:10px;font-size:13px;color:#888;">History</button>
+  </div>
+
+  <!-- SETLIST PANEL -->
+  <div id="panel-setlist" style="display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;-webkit-box-flex:1;flex:1;overflow:hidden;">
+    <div id="sidebar-header">
+      <h2>♩ Setlist</h2>
+      <button class="sb-btn" id="sl-new">New</button>
+      <button class="sb-btn" id="sl-clear">Clear</button>
+    </div>
+    <div id="setlist-name-row">
+      <input id="setlist-name" type="text" placeholder="Setlist name..." autocorrect="off">
+    </div>
+    <div id="setlist-status"></div>
+    <ul id="setlist-items" style="-webkit-box-flex:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;list-style:none;"></ul>
+    <div id="sidebar-footer">
+      <button class="sb-btn" id="sl-add" style="width:100%;margin-bottom:6px;padding:8px;">+ Add current song</button>
+      <div style="display:-webkit-box;display:flex;gap:6px;">
+        <button class="sb-btn" id="sl-save" style="-webkit-box-flex:1;flex:1;padding:8px;font-size:12px;">Save Setlist</button>
+        <button class="sb-btn" id="sl-load" style="-webkit-box-flex:1;flex:1;padding:8px;font-size:12px;">Load Setlist</button>
+      </div>
+      <textarea id="import-area" placeholder="" style="display:none;width:100%;height:80px;margin-top:6px;background:#1e1e1e;border:1px solid #444;border-radius:4px;color:#f0e8d0;font-size:11px;font-family:'Courier New',Courier,monospace;padding:6px;-webkit-appearance:none;resize:none;-webkit-box-sizing:border-box;box-sizing:border-box;overflow-x:hidden;word-wrap:break-word;white-space:pre-wrap;"></textarea>
+    </div>
+    <!-- Setlist file browser -->
+    <div id="setlist-browser" style="display:none;border-top:1px solid #2a2a2a;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+      <div style="padding:8px 12px;background:#161616;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;gap:8px;">
+        <span style="color:#888;font-size:12px;font-family:'Courier New',Courier,monospace;-webkit-box-flex:1;flex:1;">Setlists</span>
+        <span id="sl-browser-close" style="color:#cb7e7e;font-size:12px;font-family:'Courier New',Courier,monospace;cursor:pointer;">✕ Close</span>
+      </div>
+      <div id="sl-browser-status" style="padding:10px 12px;color:#555;font-size:13px;font-family:'Courier New',Courier,monospace;"></div>
+      <ul id="sl-browser-list" style="list-style:none;"></ul>
+    </div>
+  </div>
+
+  <!-- HISTORY PANEL -->
+  <div id="panel-history" style="display:none;-webkit-box-flex:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
+    <div style="padding:10px 12px;background:#111;border-bottom:1px solid #2a2a2a;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;gap:8px;">
+      <span style="color:#c8a84b;font-size:14px;-webkit-box-flex:1;flex:1;">♩ Performance History</span>
+      <button class="sb-btn" id="sl-history-clear">Clear</button>
+    </div>
+    <ul id="history-items" style="list-style:none;"></ul>
+  </div>
+</div>
+
+<!-- TOP BAR: [Top][☰][Browse][Tr-][Val][Tr+][rst][Font][Title] -->
+<div id="topbar">
+  <button class="tbtn btn-top"    id="btn-up">    <span class="icon">▲</span><span class="lbl">Top</span></button>
+  <button class="tbtn"            id="menu-btn">  <span class="icon">☰</span><span class="lbl">List</span></button>
+  <button class="tbtn btn-browse" id="btn-browse"><span class="icon">♩</span><span class="lbl">Open</span></button>
+  <button class="tbtn tr-btn"     id="tr-down">   <span class="icon">−</span><span class="lbl">Tr</span></button>
+  <span id="transpose-val">0</span>
+  <button class="tbtn tr-btn"     id="tr-up">     <span class="icon">+</span><span class="lbl">Tr</span></button>
+  <span id="transpose-reset">rst</span>
+  <button class="tbtn btn-font"   id="btn-font">  <span class="icon">Aa</span><span class="lbl">Font</span></button>
+  <span id="filename">♩ No file loaded</span>
+</div>
+
+<!-- SCROLL INDICATOR -->
+<div id="scroll-indicator"><div id="scroll-thumb"></div></div>
+
+<!-- CONTENT -->
+<div id="scroller">
+  <div id="scroll-layer">
+  <div id="content">
+    <div id="placeholder">
+      <div class="big">♩</div>
+      <p>Tap <strong style="color:#7e9ecb">♩ Open</strong> in the top bar to load a song.<br><br>
+         Tap <strong style="color:#c8a84b">☰ List</strong> for setlists.<br><br>
+         Use <strong style="color:#7ecb7e">▼ Play</strong> to auto-scroll.</p>
+    </div>
+  </div>
+  </div>
+</div>
+
+<!-- TOOLBAR — 4 corridors: [Play/Stop] [Prev/Next] [A-/A+] [Spd-/Val/Spd+] -->
+<div id="toolbar">
+  <div class="corridor" id="corridor-1">
+    <button class="btn btn-down" id="btn-down"><span class="icon">▼</span><span class="lbl">Play</span></button>
+    <button class="btn btn-stop" id="btn-stop"><span class="icon">■</span><span class="lbl">Stop</span></button>
+  </div>
+  <div class="corridor" id="corridor-2">
+    <button class="btn btn-prev" id="btn-prev"><span class="icon">◀</span><span class="lbl">Prev</span></button>
+    <button class="btn btn-next" id="btn-next"><span class="icon">▶</span><span class="lbl">Next</span></button>
+  </div>
+  <div class="corridor" id="corridor-3">
+    <button class="btn btn-adj"  id="font-down"><span class="icon">A-</span><span class="lbl">Size</span></button>
+    <button class="btn btn-adj"  id="font-up">  <span class="icon">A+</span><span class="lbl">Size</span></button>
+  </div>
+  <div class="corridor" id="corridor-4">
+    <button class="btn btn-adj"  id="speed-down"><span class="icon">&#9660;</span><span class="lbl">Slow</span></button>
+    <span id="speed-val">3</span>
+    <button class="btn btn-adj"  id="speed-up">  <span class="icon">&#9650;</span><span class="lbl">Fast</span></button>
+  </div>
+</div>
+
+<!-- BROWSER PANEL -->
+<div id="browser-panel">
+
+  <div id="browser-header">
+    <span id="browser-path">/var/mobile/Documents</span>
+    <span id="browser-close">✕ Close</span>
+  </div>
+  <div id="browser-status">Loading...</div>
+  <ul id="file-list"></ul>
+</div>
+
+<!-- FONT MENU -->
+<div id="font-menu"></div>
+
+<script>
+// ── CONFIG ──────────────────────────────────────────────────
+var IPAD_IP   = '192.168.1.104';
+var GR_PORT   = 8080;
+var BASE_PATH = '/My Documents';
+var currentPath = BASE_PATH;
+
+// ── STATE ────────────────────────────────────────────────────
+var scrollDir    = 0;
+var speedLevel   = 3;
+var fontSize     = 18;
+var isDragging   = false;
+var currentFont  = '"Courier New", Courier, monospace';
+var rawText      = '';       // original file text (untransposed)
+var transposeVal = 0;
+var currentFilePath = '';
+var currentFileName = '';
+
+// Setlist: array of {name, path}
+var setlist      = [];
+var setlistIndex = -1;
+
+// DOM refs
+var scroller      = document.getElementById('scroller');
+var content       = document.getElementById('content');
+var browserPanel  = document.getElementById('browser-panel');
+var fontMenuEl    = document.getElementById('font-menu');
+var fileList      = document.getElementById('file-list');
+var _browserEntries = []; // current rendered entry list, used by delegated onclick
+var browserStatus = document.getElementById('browser-status');
+var browserPath   = document.getElementById('browser-path');
+var fnLabel       = document.getElementById('filename');
+var speedFill     = document.getElementById('speed-fill');
+var speedValEl    = document.getElementById('speed-val');
+var thumb         = document.getElementById('scroll-thumb');
+var transpValEl   = document.getElementById('transpose-val');
+var sidebar       = document.getElementById('sidebar');
+var overlay       = document.getElementById('sidebar-overlay');
+var slItems       = document.getElementById('setlist-items');
+var slStatus      = document.getElementById('setlist-status');
+var slNameInput   = document.getElementById('setlist-name');
+
+function baseURL() { return 'http://' + IPAD_IP + ':' + GR_PORT; }
+
+// ── SIDEBAR SWIPE ────────────────────────────────────────────
+var swipeStartX = null;
+var swipeStartY = null;
+
+document.addEventListener('touchstart', function(e) {
+  swipeStartX = e.touches[0].clientX;
+  swipeStartY = e.touches[0].clientY;
+}, false);
+
+document.addEventListener('touchend', function(e) {
+  if (swipeStartX === null) return;
+  var dx = e.changedTouches[0].clientX - swipeStartX;
+  var dy = e.changedTouches[0].clientY - swipeStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+    if (dx > 0 && !sidebar.className.match('open')) openSidebar();
+    else if (dx < 0 && sidebar.className.match('open')) closeSidebar();
+  }
+  swipeStartX = null;
+}, false);
+
+document.getElementById('menu-btn').onclick = function() {
+  sidebar.className.match('open') ? closeSidebar() : openSidebar();
+};
+overlay.onclick = closeSidebar;
+
+function openSidebar()  { sidebar.className = 'open'; overlay.className = 'open'; renderSetlist(); }
+
+// Restore setlist from cookie on load
+loadSetlistCookie();
+function closeSidebar() { sidebar.className = ''; overlay.className = ''; }
+
+// ── COOKIE HELPERS ───────────────────────────────────────────
+function setCookie(name, val, days) {
+  var exp = new Date();
+  exp.setDate(exp.getDate() + (days || 30));
+  document.cookie = name + '=' + encodeURIComponent(val) + ';expires=' + exp.toUTCString() + ';path=/';
+}
+function getCookie(name) {
+  var pairs = document.cookie.split(';');
+  for (var i = 0; i < pairs.length; i++) {
+    var p = pairs[i].trim().split('=');
+    if (p[0] === name) return decodeURIComponent(p[1] || '');
+  }
+  return '';
+}
+function deleteCookie(name) {
+  document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+}
+
+function escHtml(s) {
+  return ('' + s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── DIRECTORY CACHE ───────────────────────────────────────────
+// Uses localStorage (5 MB, no per-entry size limit) instead of cookies.
+// Format: "t:name~~t:name~~…" where t = d/f/o, path = dir+'/'+name on load.
+function dirCacheKey(dir) { return 'dircache|' + dir; }
+
+function saveDirCache(dir, entries) {
+  var parts = [];
+  for (var i = 0; i < entries.length; i++) {
+    var e = entries[i];
+    if (e.name === '.. (back)') continue;
+    parts.push(e.type.charAt(0) + ':' + e.name);
+  }
+  if (!parts.length) return;
+  try { localStorage.setItem(dirCacheKey(dir), parts.join('~~')); } catch(ex) {}
+}
+
+function loadDirCache(dir) {
+  var raw = null;
+  try { raw = localStorage.getItem(dirCacheKey(dir)); } catch(ex) {}
+  if (!raw) return null;
+  var typeMap = { d: 'dir', t: 'txt', o: 'other' };
+  var entries = [];
+  if (dir !== BASE_PATH) {
+    var up = dir.split('/'); up.pop();
+    entries.push({ name: '.. (back)', path: up.join('/') || '/', type: 'dir' });
+  }
+  var parts = raw.split('~~');
+  for (var i = 0; i < parts.length; i++) {
+    if (!parts[i] || parts[i].length < 3) continue;
+    var t    = parts[i].charAt(0);
+    var name = parts[i].slice(2);
+    if (!name) continue;
+    entries.push({ name: name, path: dir + '/' + name, type: typeMap[t] || 'other' });
+  }
+  return entries.length ? entries : null;
+}
+
+function clearDirCache(dir) {
+  try { localStorage.removeItem(dirCacheKey(dir)); } catch(ex) {}
+}
+
+// ── SETLIST PERSISTENCE ───────────────────────────────────────
+function saveSetlistCookie() {
+  var obj = { name: slNameInput.value.trim(), index: setlistIndex, items: setlist };
+  try { setCookie('sheetreader_setlist', JSON.stringify(obj), 30); } catch(e) {}
+}
+
+function loadSetlistCookie() {
+  try {
+    var raw = getCookie('sheetreader_setlist');
+    if (!raw) return;
+    var obj = JSON.parse(raw);
+    if (obj.name)  slNameInput.value = obj.name;
+    if (obj.items && obj.items.length) { setlist = obj.items; setlistIndex = obj.index || 0; }
+  } catch(e) {}
+}
+
+// ── PERFORMANCE HISTORY ───────────────────────────────────────
+function logPerformance(name, path) {
+  var now = new Date();
+  var h = now.getHours(), m = now.getMinutes();
+  var time = h + ':' + (m < 10 ? '0' : '') + m;
+  var d = (now.getMonth()+1) + '/' + now.getDate();
+  // Format: "5/8 14:30 — filename\tpath" — tab separates display from path
+  var entry = d + ' ' + time + ' \u2014 ' + name + (path ? '\t' + path : '');
+  var raw = getCookie('sheetreader_history') || '';
+  var lines = raw ? raw.split('||') : [];
+  lines.unshift(entry);
+  if (lines.length > 50) lines = lines.slice(0, 50);
+  try { setCookie('sheetreader_history', lines.join('||'), 90); } catch(e) {}
+}
+
+function renderHistory() {
+  var listEl = document.getElementById('history-items');
+  var raw = getCookie('sheetreader_history') || '';
+  var lines = raw ? raw.split('||') : [];
+  if (lines.length === 0) {
+    listEl.innerHTML = '<li style="padding:20px;color:#555;font-size:12px;text-align:center;font-family:\'Courier New\',Courier,monospace;">No songs logged yet.</li>';
+    return;
+  }
+  var html = '';
+  for (var i = 0; i < lines.length; i++) {
+    var tab = lines[i].indexOf('\t');
+    var display = tab !== -1 ? lines[i].slice(0, tab) : lines[i];
+    var hasPath = tab !== -1;
+    html += '<li data-hidx="' + i + '" style="display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:center;border-bottom:1px solid #1e1e1e;min-height:40px;overflow:hidden;">';
+    html += '<span style="-webkit-box-flex:1;padding:10px 8px 10px 14px;font-size:13px;font-family:\'Courier New\',Courier,monospace;color:#f0e8d0;word-wrap:break-word;">' + escHtml(display) + '</span>';
+    if (hasPath) {
+      html += '<span class="h-open" style="display:block;padding:0 12px;font-size:18px;color:#7e9ecb;cursor:pointer;line-height:40px;-webkit-box-flex:0;">\u25b6</span>';
+    }
+    html += '</li>';
+  }
+  listEl.innerHTML = html;
+}
+
+// Delegated click handler for history rows — opens file when ► is tapped
+document.getElementById('history-items').onclick = function(ev) {
+  var target = ev.target || ev.srcElement;
+  var node = target;
+  while (node && node.id !== 'history-items') {
+    if ((node.className || '') === 'h-open') break;
+    node = node.parentNode;
+  }
+  if (!node || node.id === 'history-items') return;
+  // Find parent li
+  var li = node.parentNode;
+  while (li && li.tagName && li.tagName.toUpperCase() !== 'LI') li = li.parentNode;
+  if (!li) return;
+  var idx = parseInt(li.getAttribute('data-hidx'), 10);
+  if (isNaN(idx)) return;
+  var raw = getCookie('sheetreader_history') || '';
+  var lines = raw ? raw.split('||') : [];
+  var entry = lines[idx];
+  if (!entry) return;
+  var tab = entry.indexOf('\t');
+  if (tab === -1) return;
+  var display = entry.slice(0, tab);
+  var path = entry.slice(tab + 1);
+  // Extract just the filename from the display string (after ' — ')
+  var dash = display.indexOf(' \u2014 ');
+  var fname = dash !== -1 ? display.slice(dash + 3) : display;
+  closeSidebar();
+  loadRemoteFile(path, fname);
+};
+
+document.getElementById('sl-history-clear').onclick = function() {
+  if (confirm('Clear performance history?')) { setCookie('sheetreader_history', '', -1); renderHistory(); }
+};
+
+// ── TAB SWITCHER ──────────────────────────────────────────────
+document.getElementById('tab-setlist').onclick = function() {
+  document.getElementById('panel-setlist').style.display = '-webkit-box';
+  document.getElementById('panel-history').style.display = 'none';
+  this.style.color = '#c8a84b';
+  document.getElementById('tab-history').style.color = '#888';
+};
+document.getElementById('tab-history').onclick = function() {
+  document.getElementById('panel-setlist').style.display = 'none';
+  document.getElementById('panel-history').style.display = 'block';
+  this.style.color = '#c8a84b';
+  document.getElementById('tab-setlist').style.color = '#888';
+  renderHistory();
+};
+
+// ── SETLIST ───────────────────────────────────────────────────
+function renderSetlist() {
+  slItems.innerHTML = '';
+  if (setlist.length === 0) {
+    slStatus.textContent = 'No songs yet. Open a song and tap + Add.';
+    saveSetlistCookie();
+    return;
+  }
+  slStatus.textContent = setlist.length + ' song' + (setlist.length !== 1 ? 's' : '');
+  for (var i = 0; i < setlist.length; i++) {
+    (function(idx) {
+      var li = document.createElement('li');
+      li.className = 'sl-item' + (idx === setlistIndex ? ' active-item' : '');
+      li.setAttribute('data-idx', idx);
+
+      var handle = document.createElement('span');
+      handle.className = 'sl-handle';
+      handle.innerHTML = '&#9776;';
+
+      var nameSpan = document.createElement('span');
+      nameSpan.className = 'sl-name' + (idx === setlistIndex ? ' active' : '');
+      nameSpan.textContent = setlist[idx].name;
+      nameSpan.onclick = function() { loadSetlistIndex(idx); closeSidebar(); };
+
+      var del = document.createElement('span');
+      del.className = 'sl-del';
+      del.innerHTML = '&times;';
+      del.onclick = function() {
+        setlist.splice(idx, 1);
+        if (setlistIndex >= setlist.length) setlistIndex = setlist.length - 1;
+        renderSetlist();
+      };
+
+      li.appendChild(handle);
+      li.appendChild(nameSpan);
+      li.appendChild(del);
+      slItems.appendChild(li);
+      attachDragHandlers(handle, li);
+    })(i);
+  }
+  saveSetlistCookie();
+}
+
+// Simple touch drag-to-reorder
+var dragSrcIdx = null;
+var dragLi     = null;
+
+function attachDragHandlers(handle, li) {
+  handle.ontouchstart = function(e) {
+    dragSrcIdx = parseInt(li.getAttribute('data-idx'), 10);
+    dragLi = li;
+    li.style.opacity = '0.5';
+    e.stopPropagation();
+  };
+  handle.ontouchmove = function(e) {
+    e.preventDefault();
+    var touch = e.touches[0];
+    var els = slItems.getElementsByTagName('li');
+    for (var i = 0; i < els.length; i++) {
+      var r = els[i].getBoundingClientRect();
+      if (touch.clientY >= r.top && touch.clientY <= r.bottom) {
+        var overIdx = parseInt(els[i].getAttribute('data-idx'), 10);
+        if (overIdx !== dragSrcIdx) {
+          var item = setlist.splice(dragSrcIdx, 1)[0];
+          setlist.splice(overIdx, 0, item);
+          if (setlistIndex === dragSrcIdx) setlistIndex = overIdx;
+          else if (dragSrcIdx < setlistIndex && overIdx >= setlistIndex) setlistIndex--;
+          else if (dragSrcIdx > setlistIndex && overIdx <= setlistIndex) setlistIndex++;
+          dragSrcIdx = overIdx;
+          renderSetlist();
+          var newLis = slItems.getElementsByTagName('li');
+          dragLi = newLis[overIdx];
+          if (dragLi) dragLi.style.opacity = '0.5';
+        }
+        break;
+      }
+    }
+    e.stopPropagation();
+  };
+  handle.ontouchend = function() {
+    if (dragLi) dragLi.style.opacity = '1';
+    dragSrcIdx = null; dragLi = null;
+  };
+}
+
+document.getElementById('sl-add').onclick = function() {
+  if (!currentFilePath) { slStatus.textContent = 'No song loaded.'; return; }
+  for (var i = 0; i < setlist.length; i++) { if (setlist[i].path === currentFilePath) { slStatus.textContent = 'Already in setlist.'; return; } }
+  setlist.push({ name: currentFileName, path: currentFilePath });
+  setlistIndex = setlist.length - 1;
+  renderSetlist();
+};
+
+document.getElementById('sl-new').onclick = function() {
+  if (setlist.length > 0 && !confirm('Clear current setlist and start a new one?')) return;
+  setlist = []; setlistIndex = -1; slNameInput.value = '';
+  renderSetlist();
+};
+
+document.getElementById('sl-clear').onclick = function() {
+  if (confirm('Remove all songs from setlist?')) { setlist = []; setlistIndex = -1; renderSetlist(); }
+};
+
+// ── SAVE SETLIST → GOODREADER ─────────────────────────────────
+var GR_SETS_PATH = '/My Documents/Setlists/';
+var GR_BASE      = 'http://192.168.1.104:8080';
+
+function buildSetlistText() {
+  var name = slNameInput.value.trim() || 'setlist';
+  var lines = ['SETLIST:' + name];
+  for (var i = 0; i < setlist.length; i++) {
+    lines.push(setlist[i].name.replace(/[^ -~]/g,'') + '|' + setlist[i].path.replace(/[^ -~]/g,''));
+  }
+  return { text: lines.join('\n'), name: name };
+}
+
+document.getElementById('sl-save').onclick = function() {
+  if (setlist.length === 0) { slStatus.textContent = 'Setlist is empty.'; return; }
+  var sl = buildSetlistText();
+  var filename = sl.name.replace(/[^a-zA-Z0-9 _-]/g, '_') + '.txt';
+  slStatus.textContent = 'Saving...';
+
+  // Try multipart POST to GoodReader
+  var boundary = 'SheetReader' + Date.now();
+  var body = '--' + boundary + '\r\n';
+  body += 'Content-Disposition: form-data; name="file"; filename="' + filename + '"\r\n';
+  body += 'Content-Type: text/plain\r\n\r\n';
+  body += sl.text + '\r\n';
+  body += '--' + boundary + '--\r\n';
+
+  // POST to folder URL — GoodReader handles the filename from multipart body
+  var postURL = GR_BASE + '/My Documents/Setlists';
+  var xhr = new XMLHttpRequest();
+  xhr.open('POST', postURL, true);
+  xhr.setRequestHeader('Content-Type', 'multipart/form-data; boundary=' + boundary);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200 || xhr.status === 201 || xhr.status === 204) {
+      slStatus.textContent = 'Saved: ' + filename;
+    } else {
+      // Fallback: PUT directly to file URL
+      var putURL = GR_BASE + '/My Documents/Setlists/' + encodeURIComponent(filename);
+      var xhr2 = new XMLHttpRequest();
+      xhr2.open('PUT', putURL, true);
+      xhr2.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+      xhr2.onreadystatechange = function() {
+        if (xhr2.readyState !== 4) return;
+        if (xhr2.status === 200 || xhr2.status === 201 || xhr2.status === 204) {
+          slStatus.textContent = 'Saved: ' + filename;
+        } else {
+          var importArea = document.getElementById('import-area');
+          importArea.value = sl.text;
+          importArea.style.display = 'block';
+          slStatus.textContent = 'POST ' + xhr.status + ', PUT ' + xhr2.status + ' — copy text above, save as: ' + filename;
+        }
+      };
+      xhr2.send(sl.text);
+    }
+  };
+  xhr.send(body);
+};
+
+// ── LOAD SETLIST FROM GOODREADER ──────────────────────────────
+document.getElementById('sl-load').onclick = function() {
+  var sb = document.getElementById('setlist-browser');
+  sb.style.display = sb.style.display === 'block' ? 'none' : 'block';
+  if (sb.style.display === 'block') loadSetlistFolder();
+};
+
+document.getElementById('sl-browser-close').onclick = function() {
+  document.getElementById('setlist-browser').style.display = 'none';
+};
+
+function loadSetlistFolder() {
+  var statusEl = document.getElementById('sl-browser-status');
+  var listEl   = document.getElementById('sl-browser-list');
+  statusEl.textContent = 'Loading...';
+  listEl.innerHTML = '';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', GR_BASE + '/My Documents/Setlists', true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) { statusEl.textContent = ''; parseSetlistFolder(xhr.responseText); }
+    else { statusEl.textContent = 'Could not load Setlists folder (status ' + xhr.status + ').'; }
+  };
+  xhr.onerror = function() { statusEl.textContent = 'Connection failed.'; };
+  xhr.send();
+}
+
+function parseSetlistFolder(html) {
+  var statusEl = document.getElementById('sl-browser-status');
+  var listEl   = document.getElementById('sl-browser-list');
+  var re = /href="([^"]+)"/gi, match, seen = {}, files = [];
+  while ((match = re.exec(html)) !== null) {
+    var href = match[1];
+    if (href.indexOf('http') === 0 || href.indexOf('javascript') === 0 || href === '/') continue;
+    var decoded = decodeURIComponent(href).replace(/\/$/, '');
+    var name = decoded.split('/').pop();
+    if (!name || seen[name]) continue;
+    seen[name] = true;
+    if (name.toLowerCase().slice(-4) === '.txt') files.push({ name: name, href: GR_SETS_PATH + encodeURIComponent(name) });
+  }
+  if (files.length === 0) { statusEl.textContent = 'No setlists found.'; return; }
+  files.sort(function(a,b){ return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1; });
+  for (var i = 0; i < files.length; i++) {
+    (function(f) {
+      var li = document.createElement('li');
+      li.style.cssText = 'border-bottom:1px solid #1e1e1e;cursor:pointer;';
+      var a = document.createElement('a');
+      a.href = '#';
+      a.style.cssText = 'display:block;padding:13px 14px;text-decoration:none;color:#c8a84b;font-size:14px;font-family:"Courier New",Courier,monospace;';
+      a.textContent = '♩ ' + f.name;
+      a.onclick = function(ev) { ev.preventDefault(); fetchAndImportSetlist(f.href, f.name); };
+      li.appendChild(a);
+
+      // Delete button
+      var delBtn = document.createElement('span');
+      delBtn.textContent = '×';
+      delBtn.style.cssText = 'color:#cb7e7e;font-size:22px;padding:8px 12px;cursor:pointer;font-family:"Courier New",Courier,monospace;';
+      (function(btn, file, row) {
+        btn.onclick = function(ev) {
+          ev.preventDefault(); ev.stopPropagation();
+          if (!confirm('Delete ' + file.name + '?')) return;
+          var xhr = new XMLHttpRequest();
+          xhr.open('DELETE', GR_BASE + file.href, true);
+          xhr.onreadystatechange = function() {
+            if (xhr.readyState !== 4) return;
+            if (xhr.status === 200 || xhr.status === 204 || xhr.status === 404) {
+              row.parentNode.removeChild(row);
+              var statusEl = document.getElementById('sl-browser-status');
+              statusEl.textContent = 'Deleted ' + file.name;
+            } else {
+              var statusEl = document.getElementById('sl-browser-status');
+              statusEl.textContent = 'Delete failed (status ' + xhr.status + ').';
+            }
+          };
+          xhr.onerror = function() {
+            document.getElementById('sl-browser-status').textContent = 'Network error on delete.';
+          };
+          xhr.send();
+        };
+      })(delBtn, f, li);
+      li.style.display = 'flex';
+      li.style.WebkitAlignItems = 'center';
+      a.style.cssText = a.style.cssText + '-webkit-box-flex:1;flex:1;';
+      li.appendChild(delBtn);
+      listEl.appendChild(li);
+    })(files[i]);
+  }
+}
+
+function fetchAndImportSetlist(href, name) {
+  var statusEl = document.getElementById('sl-browser-status');
+  statusEl.textContent = 'Loading ' + name + '...';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', GR_BASE + href, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) {
+      var lines = xhr.responseText.trim().split('\n');
+      if (!lines.length || lines[0].indexOf('SETLIST:') !== 0) {
+        statusEl.textContent = 'Invalid setlist format in ' + name; return;
+      }
+      slNameInput.value = lines[0].slice(8);
+      setlist = []; setlistIndex = -1;
+      for (var i = 1; i < lines.length; i++) {
+        var pipe = lines[i].lastIndexOf('|');
+        if (pipe === -1) continue;
+        setlist.push({ name: lines[i].slice(0, pipe), path: lines[i].slice(pipe + 1) });
+      }
+      document.getElementById('setlist-browser').style.display = 'none';
+      renderSetlist();
+    } else {
+      statusEl.textContent = 'Could not load (status ' + xhr.status + ').';
+    }
+  };
+  xhr.onerror = function() { statusEl.textContent = 'Network error.'; };
+  xhr.send();
+}
+
+// Import textarea fallback (hidden, only shown if auto-save fails)
+var importArea = document.getElementById('import-area');
+var importGo   = { onclick: function(){} }; // stub — no longer used
+
+
+function loadSetlistIndex(idx) {
+  if (idx < 0 || idx >= setlist.length) return;
+  setlistIndex = idx;
+  loadRemoteFile(setlist[idx].path, setlist[idx].name);
+}
+
+document.getElementById('btn-prev').onclick = function() {
+  if (setlist.length === 0) return;
+  var idx = setlistIndex > 0 ? setlistIndex - 1 : setlist.length - 1;
+  loadSetlistIndex(idx);
+};
+document.getElementById('btn-next').onclick = function() {
+  if (setlist.length === 0) return;
+  var idx = setlistIndex < setlist.length - 1 ? setlistIndex + 1 : 0;
+  loadSetlistIndex(idx);
+};
+
+// ── TRANSPOSE ────────────────────────────────────────────────
+var SHARPS  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+var FLATS   = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+var ALL_NOTES = SHARPS.concat(FLATS);
+
+// Detect if a line is a chord line (no tab = no digits on string lines)
+// Tab lines contain digit runs like "0-2-3" etc.
+function isTabLine(line) {
+  return /^[eEBGDAb]\|/.test(line) || /^\s*[\d\-\/\\hpbr~x]+\s*$/.test(line.trim()) && /\d/.test(line);
+}
+
+// Detect chord line: has at least one chord and no long lowercase words (lyrics)
+function isChordLine(line) {
+  var trimmed = line.trim();
+  if (trimmed === '') return false;
+  if (isTabLine(trimmed)) return false;
+  var tokens = trimmed.split(/\s+/);
+  var chordCount = 0;
+  var longLowerCount = 0;
+  for (var i = 0; i < tokens.length; i++) {
+    if (isChord(tokens[i])) {
+      chordCount++;
+    } else if (tokens[i].length > 3 && tokens[i] === tokens[i].toLowerCase()) {
+      // a token of 4+ chars that is all lowercase is likely a lyric word
+      longLowerCount++;
+    }
+  }
+  // Has chords and no more than one non-chord lowercase word (allows labels like "Verse:", "Key:")
+  return chordCount > 0 && longLowerCount === 0;
+}
+
+function isChord(token) {
+  // Match things like Am, C#maj7, Bb7, G/B, Fsus4, Dm7b5 etc.
+  return /^[A-G][b#]?(maj|min|m|M|sus|aug|dim|add|[0-9]|\/[A-G][b#]?)*[0-9]?$/.test(token) && token.length <= 8;
+}
+
+function transposeChord(chord, semitones) {
+  if (semitones === 0) return chord;
+  // Find root note (up to 2 chars)
+  var root2 = chord.slice(0, 2);
+  var root1 = chord.slice(0, 1);
+  var rootIdx, rootLen;
+
+  if (ALL_NOTES.indexOf(root2) !== -1) {
+    rootIdx = ALL_NOTES.indexOf(root2);
+    rootLen = 2;
+  } else if (ALL_NOTES.indexOf(root1) !== -1) {
+    rootIdx = ALL_NOTES.indexOf(root1);
+    rootLen = 1;
+  } else {
+    return chord;
+  }
+
+  // Normalize to SHARPS index (0-11)
+  var noteVal = rootIdx % 12;
+  var newVal  = ((noteVal + semitones) % 12 + 12) % 12;
+
+  // Prefer flats if original used flat
+  var useFlat = (root2.length > 1 && root2[1] === 'b') || (rootLen === 2 && root2[1] === 'b');
+  var newRoot = useFlat ? FLATS[newVal] : SHARPS[newVal];
+
+  var suffix = chord.slice(rootLen);
+
+  // Handle slash chords (bass note after /)
+  var slashIdx = suffix.indexOf('/');
+  if (slashIdx !== -1) {
+    var bassStr = suffix.slice(slashIdx + 1);
+    var transposedBass = transposeChord(bassStr, semitones);
+    suffix = suffix.slice(0, slashIdx + 1) + transposedBass;
+  }
+
+  return newRoot + suffix;
+}
+
+function transposeChordLine(line, semitones) {
+  if (semitones === 0) return line;
+  // Replace each chord token preserving spacing
+  return line.replace(/[A-G][b#]?\S*/g, function(token) {
+    if (isChord(token)) return transposeChord(token, semitones);
+    return token;
+  });
+}
+
+function applyTranspose(text, semitones) {
+  if (semitones === 0) return text;
+  var lines = text.split('\n');
+  for (var i = 0; i < lines.length; i++) {
+    if (isTabLine(lines[i])) continue; // never touch tab lines
+    if (isChordLine(lines[i])) lines[i] = transposeChordLine(lines[i], semitones);
+  }
+  return lines.join('\n');
+}
+
+function setTranspose(val) {
+  transposeVal = Math.max(-11, Math.min(11, val));
+  transpValEl.textContent = transposeVal === 0 ? '0' : (transposeVal > 0 ? '+' + transposeVal : '' + transposeVal);
+  transpValEl.style.color = transposeVal === 0 ? '#7e9ecb' : '#c8a84b';
+  if (rawText) renderText();
+}
+
+document.getElementById('tr-up').onclick   = function() { setTranspose(transposeVal + 1); };
+document.getElementById('tr-down').onclick = function() { setTranspose(transposeVal - 1); };
+document.getElementById('transpose-reset').onclick = function() { setTranspose(0); };
+
+function renderText() {
+  var displayed = applyTranspose(rawText, transposeVal);
+  var pre = content.getElementsByTagName('pre')[0];
+  if (!pre) {
+    content.innerHTML = '';
+    pre = document.createElement('pre');
+    pre.style.whiteSpace = 'pre-wrap';
+    pre.style.wordWrap   = 'break-word';
+    pre.style.fontSize   = fontSize + 'px';
+    pre.style.lineHeight = '1.7';
+    pre.style.color      = '#f0e8d0';
+    pre.style.fontFamily = currentFont;
+    content.appendChild(pre);
+  }
+  pre.textContent = displayed;
+}
+
+// ── FONT SIZE ────────────────────────────────────────────────
+function applyFontSize() {
+  // Update chart text
+  var pre = content.getElementsByTagName('pre')[0];
+  if (pre) pre.style.fontSize = fontSize + 'px';
+  // Update file list items and setlist items proportionally
+  var fileAnchors = fileList.getElementsByTagName('a');
+  for (var i = 0; i < fileAnchors.length; i++) {
+    fileAnchors[i].style.fontSize = fontSize + 'px';
+    fileAnchors[i].style.lineHeight = (fontSize + 14) + 'px';
+  }
+  var fileItems = fileList.getElementsByTagName('li');
+  for (var j = 0; j < fileItems.length; j++) {
+    fileItems[j].style.height = (fontSize + 14) + 'px';
+  }
+}
+document.getElementById('font-up').onclick = function() {
+  fontSize = Math.min(fontSize + 2, 40);
+  applyFontSize();
+};
+document.getElementById('font-down').onclick = function() {
+  fontSize = Math.max(fontSize - 2, 12);
+  applyFontSize();
+};
+
+// ── SPEED SLIDER ─────────────────────────────────────────────
+function setSpeed(level) {
+  speedLevel = Math.max(1, Math.min(10, level));
+  speedValEl.textContent = speedLevel;
+  if (scrollDir !== 0) startScroll(scrollDir);
+}
+document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
+document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); };
+setSpeed(3);
+
+// ── AUTO-SCROLL ──────────────────────────────────────────────
+function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 9); }
+
+// startScroll and stopScroll defined in unified scroll loop above
+
+document.getElementById('btn-up').onclick   = function() { stopScroll(); setScrollPos(0); };
+document.getElementById('btn-stop').onclick = function() { stopScroll(); };
+document.getElementById('btn-down').onclick = function() { startScroll(1); };
+
+// Pause on touch, resume on release
+// ── TRANSLATE3D SCROLL SYSTEM ────────────────────────────────
+// All scrolling is done via -webkit-transform translate3d on #scroll-layer.
+// scrollTop is never used — eliminates compositing conflicts on iOS 5.
+var scrollLayer      = document.getElementById('scroll-layer');
+var scrollPos        = 0;   // current Y offset in px (positive = scrolled down)
+var scrollMax        = 0;   // updated on content load
+var isAutoScrolling  = false;
+var autoScrollTimer  = null;
+var touchStartY      = 0;
+var touchLastY       = 0;
+var touchScrollStart = 0;   // scrollPos at touch start
+var isPinching         = false;
+var pinchStartDist     = 0;
+var pinchStartFontSize = 0;
+
+function getScrollMax() {
+  return Math.max(0, scrollLayer.offsetHeight - scroller.offsetHeight);
+}
+
+function setScrollPos(y) {
+  scrollPos = Math.max(0, Math.min(getScrollMax(), y));
+  scrollLayer.style.WebkitTransform = 'translate3d(0,-' + scrollPos + 'px,0)';
+  updateThumb();
+}
+
+// Touch handlers — pure JS, no native scroll
+scroller.ontouchstart = function(e) {
+  if (e.touches.length === 2) {
+    // Two-finger pinch: record starting distance and font size
+    var dx = e.touches[1].clientX - e.touches[0].clientX;
+    var dy = e.touches[1].clientY - e.touches[0].clientY;
+    pinchStartDist     = Math.sqrt(dx * dx + dy * dy);
+    pinchStartFontSize = fontSize;
+    isPinching         = true;
+    e.preventDefault();
+    return;
+  }
+  isPinching       = false;
+  touchStartY      = e.touches[0].clientY;
+  touchLastY       = touchStartY;
+  touchScrollStart = scrollPos;
+  // Pause autoscroll while finger is down
+  if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
+  e.preventDefault();
+};
+
+scroller.ontouchmove = function(e) {
+  if (isPinching && e.touches.length === 2) {
+    var dx = e.touches[1].clientX - e.touches[0].clientX;
+    var dy = e.touches[1].clientY - e.touches[0].clientY;
+    var dist  = Math.sqrt(dx * dx + dy * dy);
+    var scale = dist / pinchStartDist;
+    var newSize = Math.round(pinchStartFontSize * scale);
+    newSize = Math.max(12, Math.min(40, newSize));
+    if (newSize !== fontSize) {
+      fontSize = newSize;
+      applyFontSize();
+    }
+    e.preventDefault();
+    return;
+  }
+  var dy2 = touchStartY - e.touches[0].clientY;
+  touchLastY = e.touches[0].clientY;
+  setScrollPos(touchScrollStart + dy2);
+  e.preventDefault();
+};
+
+scroller.ontouchend = function(e) {
+  isPinching = false;
+  // Resume autoscroll after 400ms if it was active
+  if (isAutoScrolling) {
+    setTimeout(function() {
+      if (isAutoScrolling) startAutoScrollTimer();
+    }, 400);
+  }
+  debouncedSaveBookmark();
+};
+scroller.ontouchcancel = scroller.ontouchend;
+
+function startAutoScrollTimer() {
+  if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
+  autoScrollTimer = setInterval(function() {
+    var next = scrollPos + pxPerTick();
+    if (next >= getScrollMax()) { stopScroll(); return; }
+    setScrollPos(next);
+  }, 16);
+}
+
+function startScroll(dir) {
+  // dir is always 1 (down only for autoscroll)
+  scrollDir = dir;
+  isAutoScrolling = true;
+  startAutoScrollTimer();
+}
+
+function stopScroll() {
+  isAutoScrolling = false;
+  scrollDir = 0;
+  if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
+  saveBookmark();
+}
+
+// ── BOOKMARK ─────────────────────────────────────────────────
+var bookmarkSaveTimer = null;
+
+function saveBookmark() {
+  try {
+    if (!currentFilePath) return;
+    localStorage.setItem('bookmark|file',   currentFilePath);
+    localStorage.setItem('bookmark|name',   currentFileName);
+    localStorage.setItem('bookmark|scroll', Math.round(scrollPos));
+  } catch(ex) {}
+}
+
+function debouncedSaveBookmark() {
+  if (bookmarkSaveTimer) clearTimeout(bookmarkSaveTimer);
+  bookmarkSaveTimer = setTimeout(saveBookmark, 800);
+}
+
+function restoreBookmark() {
+  var path, name, pos;
+  try {
+    path = localStorage.getItem('bookmark|file');
+    name = localStorage.getItem('bookmark|name');
+    pos  = parseInt(localStorage.getItem('bookmark|scroll'), 10) || 0;
+  } catch(ex) { return; }
+  if (!path || !name) return;
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', baseURL() + path, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) {
+      currentFilePath = path;
+      currentFileName = name;
+      fnLabel.textContent = '\u266a ' + name;
+      rawText = xhr.responseText;
+      transposeVal = 0;
+      transpValEl.textContent = '0';
+      transpValEl.style.color = '#7e9ecb';
+      loadText(rawText);
+      if (pos > 0) {
+        setTimeout(function() { setScrollPos(pos); }, 150);
+      }
+    }
+  };
+  xhr.onerror = function() {};
+  xhr.send();
+}
+
+// ── SCROLL THUMB ─────────────────────────────────────────────
+function updateThumb() {
+  var max = getScrollMax();
+  if (max <= 0) { thumb.style.height = '0px'; return; }
+  var viewH = scroller.offsetHeight;
+  var layerH = scrollLayer.offsetHeight;
+  var h = Math.max(30, (viewH / layerH) * viewH);
+  thumb.style.height = h + 'px';
+  thumb.style.top = ((scrollPos / max) * (viewH - h)) + 'px';
+}
+
+// ── FILE BROWSER ─────────────────────────────────────────────
+// Short tap → open from cache (instant); hold 600 ms → force live refresh
+var browseHoldTimer = null;
+var browseBtn = document.getElementById('btn-browse');
+
+// touchstart/touchend only for hold detection — no preventDefault so iOS tap still works
+var browseHoldFired = false;
+browseBtn.ontouchstart = function() {
+  browseHoldFired = false;
+  browseHoldTimer = setTimeout(function() {
+    browseHoldFired = true;
+    browseHoldTimer = null;
+    clearDirCache(currentPath);
+    fontMenuEl.style.display = 'none';
+    browserPanel.style.display = 'block';
+    browserStatus.style.display = 'block';
+    browserStatus.textContent = '↺ Refreshing...';
+    fileList.innerHTML = '';
+    fetchDirectory(currentPath, true);
+  }, 600);
+};
+browseBtn.ontouchend   = function() { if (browseHoldTimer) { clearTimeout(browseHoldTimer); browseHoldTimer = null; } };
+browseBtn.ontouchcancel = browseBtn.ontouchend;
+
+// onclick fires on normal short tap — use cache if available
+browseBtn.onclick = function() {
+  if (browseHoldFired) { browseHoldFired = false; return; }
+  fontMenuEl.style.display = 'none';
+  browserPanel.style.display = 'block';
+  browseTo(BASE_PATH);
+};
+
+document.getElementById('browser-close').onclick = function() { browserPanel.style.display = 'none'; };
+
+// Single delegated click handler for the file list — avoids attaching hundreds
+// of individual listeners every time the list is rendered.
+fileList.onclick = function(ev) {
+  var target = ev.target || ev.srcElement;
+  // Walk up from target to find the element with a recognised class
+  var node = target;
+  while (node && node !== fileList) {
+    var nc = node.className || '';
+    if (nc === 'fl-link' || nc === 'fl-add' || nc === 'fl-rem' || nc === 'fl-ren') break;
+    node = node.parentNode;
+  }
+  if (!node || node === fileList) return;
+  var nc = node.className;
+  // Find parent <li> for data-idx
+  var li = node.parentNode;
+  while (li && li !== fileList) {
+    if (li.tagName && li.tagName.toUpperCase() === 'LI') break;
+    li = li.parentNode;
+  }
+  if (!li || li === fileList) return;
+  var idx = parseInt(li.getAttribute('data-idx'), 10);
+  if (isNaN(idx)) return;
+  var e = _browserEntries[idx];
+  if (!e) return;
+
+  if (nc === 'fl-link') {
+    if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
+    if (e.type === 'dir') browseTo(e.path);
+    else if (e.type === 'txt') loadRemoteFile(e.path, e.name);
+
+  } else if (nc === 'fl-add') {
+    if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
+    for (var j = 0; j < setlist.length; j++) {
+      if (setlist[j].path === e.path) {
+        node.textContent = '\u2713'; node.style.color = '#888';
+        slStatus.textContent = e.name + ' already in setlist.'; return;
+      }
+    }
+    setlist.push({ name: e.name, path: e.path });
+    if (setlistIndex === -1) setlistIndex = 0;
+    node.textContent = '\u2713'; node.style.color = '#c8a84b';
+    slStatus.textContent = '+ ' + e.name + ' added.';
+
+  } else if (nc === 'fl-rem') {
+    if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
+    var found = false;
+    for (var j = 0; j < setlist.length; j++) {
+      if (setlist[j].path === e.path) {
+        setlist.splice(j, 1);
+        if (setlistIndex >= setlist.length) setlistIndex = setlist.length - 1;
+        found = true; break;
+      }
+    }
+    if (found) {
+      var spans = li.getElementsByTagName('span');
+      for (var s = 0; s < spans.length; s++) {
+        if (spans[s].className === 'fl-add') { spans[s].textContent = '+'; spans[s].style.color = '#7ecb7e'; break; }
+      }
+      slStatus.textContent = '\u2212 ' + e.name + ' removed.';
+    } else {
+      slStatus.textContent = e.name + ' not in setlist.';
+    }
+
+  } else if (nc === 'fl-ren') {
+    if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
+    var newName = prompt('Rename file:', e.name);
+    if (!newName || newName === e.name) return;
+    var dir = e.path.slice(0, e.path.lastIndexOf('/'));
+    var newPath = dir + '/' + newName;
+    var renXhr = new XMLHttpRequest();
+    renXhr.open('MOVE', baseURL() + e.path, true);
+    renXhr.setRequestHeader('Destination', baseURL() + newPath);
+    renXhr.setRequestHeader('Overwrite', 'F');
+    renXhr.onreadystatechange = function() {
+      if (renXhr.readyState !== 4) return;
+      if (renXhr.status === 201 || renXhr.status === 204) {
+        if (currentFilePath === e.path) {
+          currentFilePath = newPath;
+          currentFileName = newName;
+          fnLabel.textContent = '\u266a ' + newName;
+        }
+        for (var j = 0; j < setlist.length; j++) {
+          if (setlist[j].path === e.path) { setlist[j].path = newPath; setlist[j].name = newName; }
+        }
+        saveSetlistCookie();
+        clearDirCache(currentPath);
+        browseTo(currentPath);
+      } else {
+        alert('Rename failed (status ' + renXhr.status + '). GoodReader may not support MOVE.');
+      }
+    };
+    renXhr.onerror = function() { alert('Network error during rename.'); };
+    renXhr.send();
+  }
+};
+
+function browseTo(path) {
+  currentPath = path;
+  fileList.innerHTML = '';
+  var cached = loadDirCache(path);
+  if (cached) {
+    browserPath.textContent = path + ' [cached]';
+    browserStatus.style.display = 'none';
+    renderEntries(cached, true);
+    return;
+  }
+  browserPath.textContent = path;
+  browserStatus.style.display = 'block';
+  browserStatus.textContent = 'Loading...';
+  fetchDirectory(path, true);
+}
+
+function fetchDirectory(path, saveCache) {
+  currentPath = path;
+  browserPath.textContent = path;
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', baseURL() + path, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) {
+      browserStatus.style.display = 'none';
+      var entries = parseDirectoryHtml(xhr.responseText, path);
+      if (saveCache) saveDirCache(path, entries);
+      renderEntries(entries, false);
+    } else {
+      browserStatus.textContent = 'Could not load folder. Status: ' + xhr.status;
+    }
+  };
+  xhr.onerror = function() { browserStatus.textContent = 'Connection failed. Is GoodReader web server running?'; };
+  xhr.send();
+}
+
+function parseDirectoryHtml(html, dir) {
+  var entries = [];
+  if (dir !== BASE_PATH) {
+    var up = dir.split('/'); up.pop();
+    entries.push({ name: '.. (back)', path: up.join('/') || '/', type: 'dir' });
+  }
+  var re = /href="([^"]+)"/gi, match, seen = {};
+  while ((match = re.exec(html)) !== null) {
+    var href = match[1];
+    if (href.indexOf('http') === 0 || href.indexOf('javascript') === 0 || href === '/') continue;
+    var decoded = decodeURIComponent(href);
+    var full = decoded.charAt(0) === '/' ? decoded.replace(/\/$/, '') : dir + '/' + decoded.replace(/\/$/, '');
+    if (seen[full]) continue; seen[full] = true;
+    if (full.indexOf(dir + '/') !== 0) continue;
+    var rest = full.slice(dir.length + 1);
+    if (rest === '' || rest.indexOf('/') !== -1) continue;
+    var isDir = href.charAt(href.length - 1) === '/' || rest.indexOf('.') === -1;
+    var lc = rest.toLowerCase();
+    var isTxt = !isDir && (lc.slice(-4) === '.txt' || lc.slice(-4) === '.tab' || lc.slice(-6) === '.chord' || lc.slice(-3) === '.ly');
+    entries.push({ name: rest, path: full, type: isDir ? 'dir' : (isTxt ? 'txt' : 'other') });
+  }
+  if (entries.length === 0) {
+    browserStatus.style.display = 'block';
+    browserStatus.textContent = 'No files found here.';
+    return entries;
+  }
+  entries.sort(function(a, b) {
+    var o = { dir:0, txt:1, other:2 };
+    if (o[a.type] !== o[b.type]) return o[a.type] - o[b.type];
+    return a.name.toLowerCase() < b.name.toLowerCase() ? -1 : 1;
+  });
+  return entries;
+}
+
+// Build the whole list as one innerHTML string (far faster on iPad 1 than
+// individual createElement calls), then handle all clicks through a single
+// delegated handler on the container — see fileList.onclick below.
+function renderEntries(entries, fromCache) {
+  _browserEntries = entries || [];
+  if (!entries || entries.length === 0) {
+    fileList.innerHTML = '';
+    browserStatus.style.display = 'block';
+    browserStatus.textContent = 'No files found here.';
+    return;
+  }
+  browserStatus.style.display = 'none';
+  var SP = 'style="display:block;font-size:16px;line-height:32px;cursor:pointer;font-family:\'Courier New\',Courier,monospace;-webkit-box-flex:0;';
+  var html = '';
+  for (var i = 0; i < entries.length; i++) {
+    var e = entries[i];
+    var icon = e.type === 'dir' ? '📁' : e.type === 'txt' ? '♩' : '·';
+    html += '<li class="file-item is-' + e.type + '" data-idx="' + i + '" style="display:-webkit-box;-webkit-box-orient:horizontal;-webkit-box-align:center;border-bottom:1px solid #1a1a1a;height:32px;overflow:hidden;">';
+    html += '<a href="#" class="fl-link" style="-webkit-box-flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;padding:0 8px;font-size:13px;line-height:32px;"><span class="file-icon">' + icon + '</span>' + escHtml(e.name) + '</a>';
+    if (e.type === 'txt') {
+      html += '<span class="fl-add" ' + SP + 'color:#7ecb7e;padding:0 7px;">+</span>';
+      html += '<span class="fl-rem" ' + SP + 'color:#cb7e7e;padding:0 6px;">\u2212</span>';
+      if (!fromCache) {
+        html += '<span class="fl-ren" ' + SP + 'color:#c8a84b;padding:0 7px 0 4px;">\u270e</span>';
+      }
+    }
+    html += '</li>';
+  }
+  fileList.innerHTML = html;
+}
+
+function loadRemoteFile(path, name) {
+  browserStatus.style.display = 'block';
+  browserStatus.textContent = 'Loading ' + name + '...';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', baseURL() + path, true);
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) {
+      currentFilePath = path;
+      currentFileName = name;
+      fnLabel.textContent = '♩ ' + name;
+      rawText = xhr.responseText;
+      logPerformance(name, path);
+      renderHistory();
+      transposeVal = 0;
+      transpValEl.textContent = '0';
+      transpValEl.style.color = '#7e9ecb';
+      loadText(rawText);
+      saveBookmark();
+      browserPanel.style.display = 'none';
+      // update active setlist highlight
+      for (var i = 0; i < setlist.length; i++) {
+        if (setlist[i].path === path) { setlistIndex = i; break; }
+      }
+    } else {
+      alert('Could not load file. Status: ' + xhr.status);
+      browserStatus.style.display = 'none';
+    }
+  };
+  xhr.onerror = function() { alert('Network error.'); browserStatus.style.display = 'none'; };
+  xhr.send();
+}
+
+function loadText(text) {
+  rawText = text;
+  content.innerHTML = '';
+  var pre = document.createElement('pre');
+  pre.style.whiteSpace = 'pre-wrap';
+  pre.style.wordWrap   = 'break-word';
+  pre.style.fontSize   = fontSize + 'px';
+  pre.style.lineHeight = '1.7';
+  pre.style.color      = '#f0e8d0';
+  pre.style.fontFamily = currentFont;
+  pre.textContent      = applyTranspose(text, transposeVal);
+  content.appendChild(pre);
+  scrollPos = 0;
+  if (scrollLayer) scrollLayer.style.WebkitTransform = 'translate3d(0,0,0)';
+  stopScroll();
+  updateThumb();
+}
+
+// ── FONT MENU ────────────────────────────────────────────────
+var fonts = [
+  { name: 'Georgia',         css: 'Georgia, serif' },
+  { name: 'Palatino',        css: '"Palatino Linotype", Palatino, serif' },
+  { name: 'Times New Roman', css: '"Times New Roman", Times, serif' },
+  { name: 'Helvetica',       css: 'Helvetica, Arial, sans-serif' },
+  { name: 'Arial',           css: 'Arial, sans-serif' },
+  { name: 'Courier New',     css: '"Courier New", Courier, monospace' }
+];
+
+for (var fi = 0; fi < fonts.length; fi++) {
+  (function(f) {
+    var div = document.createElement('div');
+    div.className = 'font-option' + (f.css === currentFont ? ' selected' : '');
+    div.style.fontFamily = f.css;
+    div.textContent = f.name;
+    div.onclick = function() {
+      currentFont = f.css;
+      var pre = content.getElementsByTagName('pre')[0];
+      if (pre) pre.style.fontFamily = currentFont;
+      var opts = fontMenuEl.getElementsByTagName('div');
+      for (var i = 0; i < opts.length; i++) opts[i].className = 'font-option';
+      div.className = 'font-option selected';
+      fontMenuEl.style.display = 'none';
+    };
+    fontMenuEl.appendChild(div);
+  })(fonts[fi]);
+}
+
+document.getElementById('btn-font').onclick = function() {
+  browserPanel.style.display = 'none';
+  fontMenuEl.style.display = fontMenuEl.style.display === 'block' ? 'none' : 'block';
+};
+
+restoreBookmark();
+</script>
+</body>
+</html>
