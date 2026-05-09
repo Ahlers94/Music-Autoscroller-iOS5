@@ -1108,7 +1108,7 @@ function updateScrollTime() {
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); setCookie('bk_speed', speedLevel, 365); };
 document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel + 1); setCookie('bk_speed', speedLevel, 365); };
-setSpeed(3);
+speedValEl.textContent = 3;
 
 // ── AUTO-SCROLL ──────────────────────────────────────────────
 function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 9); }
