@@ -470,22 +470,15 @@ function openSidebar()  { sidebar.className = 'open'; overlay.className = 'open'
 loadSetlistCookie();
 function closeSidebar() { sidebar.className = ''; overlay.className = ''; }
 
-// ── COOKIE HELPERS ───────────────────────────────────────────
-function setCookie(name, val, days) {
-  var exp = new Date();
-  exp.setDate(exp.getDate() + (days || 30));
-  document.cookie = name + '=' + encodeURIComponent(val) + ';expires=' + exp.toUTCString() + ';path=/';
+// ── LOCALSTORAGE HELPERS ─────────────────────────────────────
+function lsSet(key, val) {
+  try { localStorage.setItem(key, val); } catch(e) {}
 }
-function getCookie(name) {
-  var pairs = document.cookie.split(';');
-  for (var i = 0; i < pairs.length; i++) {
-    var p = pairs[i].trim().split('=');
-    if (p[0] === name) return decodeURIComponent(p[1] || '');
-  }
-  return '';
+function lsGet(key) {
+  try { return localStorage.getItem(key) || ''; } catch(e) { return ''; }
 }
-function deleteCookie(name) {
-  document.cookie = name + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+function lsDel(key) {
+  try { localStorage.removeItem(key); } catch(e) {}
 }
 
 function escHtml(s) {
@@ -534,12 +527,12 @@ function clearDirCache(dir) {
 // ── SETLIST PERSISTENCE ───────────────────────────────────────
 function saveSetlistCookie() {
   var obj = { name: slNameInput.value.trim(), index: setlistIndex, items: setlist };
-  try { setCookie('sheetreader_setlist', JSON.stringify(obj), 30); } catch(e) {}
+  lsSet('sheetreader_setlist', JSON.stringify(obj));
 }
 
 function loadSetlistCookie() {
   try {
-    var raw = getCookie('sheetreader_setlist');
+    var raw = lsGet('sheetreader_setlist');
     if (!raw) return;
     var obj = JSON.parse(raw);
     if (obj.name)  slNameInput.value = obj.name;
@@ -554,16 +547,16 @@ function logPerformance(name, path) {
   var time = h + ':' + (m < 10 ? '0' : '') + m;
   var d = (now.getMonth()+1) + '/' + now.getDate();
   var entry = d + ' ' + time + ' \u2014 ' + name + (path ? '\t' + path : '');
-  var raw = getCookie('sheetreader_history') || '';
+  var raw = lsGet('sheetreader_history');
   var lines = raw ? raw.split('||') : [];
   lines.unshift(entry);
   if (lines.length > 50) lines = lines.slice(0, 50);
-  try { setCookie('sheetreader_history', lines.join('||'), 90); } catch(e) {}
+  lsSet('sheetreader_history', lines.join('||'));
 }
 
 function renderHistory() {
   var listEl = document.getElementById('history-items');
-  var raw = getCookie('sheetreader_history') || '';
+  var raw = lsGet('sheetreader_history');
   var lines = raw ? raw.split('||') : [];
   if (lines.length === 0) {
     listEl.innerHTML = '<li style="padding:20px;color:#555;font-size:12px;text-align:center;font-family:\'Courier New\',Courier,monospace;">No songs logged yet.</li>';
@@ -597,7 +590,7 @@ document.getElementById('history-items').onclick = function(ev) {
   if (!li) return;
   var idx = parseInt(li.getAttribute('data-hidx'), 10);
   if (isNaN(idx)) return;
-  var raw = getCookie('sheetreader_history') || '';
+  var raw = lsGet('sheetreader_history');
   var lines = raw ? raw.split('||') : [];
   var entry = lines[idx];
   if (!entry) return;
@@ -612,7 +605,7 @@ document.getElementById('history-items').onclick = function(ev) {
 };
 
 document.getElementById('sl-history-clear').onclick = function() {
-  if (confirm('Clear performance history?')) { setCookie('sheetreader_history', '', -1); renderHistory(); }
+  if (confirm('Clear performance history?')) { lsDel('sheetreader_history'); renderHistory(); }
 };
 
 // ── TAB SWITCHER ──────────────────────────────────────────────
@@ -1049,16 +1042,35 @@ function applyFontSize() {
 document.getElementById('font-up').onclick = function() {
   fontSize = Math.min(fontSize + 2, 40);
   applyFontSize();
+  saveSongPrefs();
 };
 document.getElementById('font-down').onclick = function() {
   fontSize = Math.max(fontSize - 2, 12);
   applyFontSize();
+  saveSongPrefs();
 };
 
-// ── SPEED ────────────────────────────────────────────────────
+// ── PER-SONG PREFS (font size + speed) ───────────────────────
+function saveSongPrefs() {
+  if (!currentFilePath) return;
+  lsSet('songprefs|' + currentFilePath, JSON.stringify({ fontSize: fontSize, speedLevel: speedLevel }));
+}
+
+function restoreSongPrefs(path) {
+  try {
+    var raw = lsGet('songprefs|' + path);
+    if (!raw) return;
+    var prefs = JSON.parse(raw);
+    if (prefs.fontSize)   { fontSize   = prefs.fontSize;   applyFontSize(); }
+    if (prefs.speedLevel) { speedLevel = prefs.speedLevel; speedValEl.textContent = speedLevel; }
+  } catch(e) {}
+}
+
+
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(20, level));
   speedValEl.textContent = speedLevel;
+  saveSongPrefs();
   if (scrollDir !== 0) startScroll(scrollDir);
 }
 document.getElementById('speed-down').onclick = function() { setSpeed(speedLevel - 1); };
@@ -1470,6 +1482,7 @@ function loadRemoteFile(path, name) {
       transpValEl.textContent = '0';
       transpValEl.style.color = '#7e9ecb';
       loadText(rawText);
+      restoreSongPrefs(path);
       saveBookmark();
       browserPanel.style.display = 'none';
       for (var i = 0; i < setlist.length; i++) {
