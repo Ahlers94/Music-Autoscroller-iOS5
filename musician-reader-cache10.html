@@ -1213,11 +1213,10 @@ function debouncedSaveBookmark() {
 }
 
 function restoreBookmark() {
-  var path, name, pos;
+  var path, name;
   try {
     path = localStorage.getItem('bookmark|file');
     name = localStorage.getItem('bookmark|name');
-    pos  = parseInt(localStorage.getItem('bookmark|scroll'), 10) || 0;
   } catch(ex) { return; }
   if (!path || !name) return;
   var xhr = new XMLHttpRequest();
@@ -1233,9 +1232,7 @@ function restoreBookmark() {
       transpValEl.textContent = '0';
       transpValEl.style.color = '#7e9ecb';
       loadText(rawText);
-      if (pos > 0) {
-        setTimeout(function() { setScrollPos(pos); }, 150);
-      }
+      restoreSongPrefs(path);
     }
   };
   xhr.onerror = function() {};
