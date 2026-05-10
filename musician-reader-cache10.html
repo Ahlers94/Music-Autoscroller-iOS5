@@ -493,8 +493,6 @@ function escHtml(s) {
 }
 
 // ── DIRECTORY CACHE ───────────────────────────────────────────
-// Uses localStorage (5 MB, no per-entry size limit) instead of cookies.
-// Format: "t:name~~t:name~~…" where t = d/f/o, path = dir+'/'+name on load.
 function dirCacheKey(dir) { return 'dircache|' + dir; }
 
 function saveDirCache(dir, entries) {
@@ -555,7 +553,6 @@ function logPerformance(name, path) {
   var h = now.getHours(), m = now.getMinutes();
   var time = h + ':' + (m < 10 ? '0' : '') + m;
   var d = (now.getMonth()+1) + '/' + now.getDate();
-  // Format: "5/8 14:30 — filename\tpath" — tab separates display from path
   var entry = d + ' ' + time + ' \u2014 ' + name + (path ? '\t' + path : '');
   var raw = getCookie('sheetreader_history') || '';
   var lines = raw ? raw.split('||') : [];
@@ -587,7 +584,6 @@ function renderHistory() {
   listEl.innerHTML = html;
 }
 
-// Delegated click handler for history rows — opens file when ► is tapped
 document.getElementById('history-items').onclick = function(ev) {
   var target = ev.target || ev.srcElement;
   var node = target;
@@ -596,7 +592,6 @@ document.getElementById('history-items').onclick = function(ev) {
     node = node.parentNode;
   }
   if (!node || node.id === 'history-items') return;
-  // Find parent li
   var li = node.parentNode;
   while (li && li.tagName && li.tagName.toUpperCase() !== 'LI') li = li.parentNode;
   if (!li) return;
@@ -610,7 +605,6 @@ document.getElementById('history-items').onclick = function(ev) {
   if (tab === -1) return;
   var display = entry.slice(0, tab);
   var path = entry.slice(tab + 1);
-  // Extract just the filename from the display string (after ' — ')
   var dash = display.indexOf(' \u2014 ');
   var fname = dash !== -1 ? display.slice(dash + 3) : display;
   closeSidebar();
@@ -758,7 +752,6 @@ document.getElementById('sl-save').onclick = function() {
   var filename = sl.name.replace(/[^a-zA-Z0-9 _-]/g, '_') + '.txt';
   slStatus.textContent = 'Saving...';
 
-  // Try multipart POST to GoodReader
   var boundary = 'SheetReader' + Date.now();
   var body = '--' + boundary + '\r\n';
   body += 'Content-Disposition: form-data; name="file"; filename="' + filename + '"\r\n';
@@ -766,7 +759,6 @@ document.getElementById('sl-save').onclick = function() {
   body += sl.text + '\r\n';
   body += '--' + boundary + '--\r\n';
 
-  // POST to folder URL — GoodReader handles the filename from multipart body
   var postURL = GR_BASE + '/My Documents/Setlists';
   var xhr = new XMLHttpRequest();
   xhr.open('POST', postURL, true);
@@ -776,7 +768,6 @@ document.getElementById('sl-save').onclick = function() {
     if (xhr.status === 200 || xhr.status === 201 || xhr.status === 204) {
       slStatus.textContent = 'Saved: ' + filename;
     } else {
-      // Fallback: PUT directly to file URL
       var putURL = GR_BASE + '/My Documents/Setlists/' + encodeURIComponent(filename);
       var xhr2 = new XMLHttpRequest();
       xhr2.open('PUT', putURL, true);
@@ -851,7 +842,6 @@ function parseSetlistFolder(html) {
       a.onclick = function(ev) { ev.preventDefault(); fetchAndImportSetlist(f.href, f.name); };
       li.appendChild(a);
 
-      // Delete button
       var delBtn = document.createElement('span');
       delBtn.textContent = '×';
       delBtn.style.cssText = 'color:#cb7e7e;font-size:22px;padding:8px 12px;cursor:pointer;font-family:"Courier New",Courier,monospace;';
@@ -865,11 +855,9 @@ function parseSetlistFolder(html) {
             if (xhr.readyState !== 4) return;
             if (xhr.status === 200 || xhr.status === 204 || xhr.status === 404) {
               row.parentNode.removeChild(row);
-              var statusEl = document.getElementById('sl-browser-status');
-              statusEl.textContent = 'Deleted ' + file.name;
+              document.getElementById('sl-browser-status').textContent = 'Deleted ' + file.name;
             } else {
-              var statusEl = document.getElementById('sl-browser-status');
-              statusEl.textContent = 'Delete failed (status ' + xhr.status + ').';
+              document.getElementById('sl-browser-status').textContent = 'Delete failed (status ' + xhr.status + ').';
             }
           };
           xhr.onerror = function() {
@@ -916,10 +904,8 @@ function fetchAndImportSetlist(href, name) {
   xhr.send();
 }
 
-// Import textarea fallback (hidden, only shown if auto-save fails)
 var importArea = document.getElementById('import-area');
-var importGo   = { onclick: function(){} }; // stub — no longer used
-
+var importGo   = { onclick: function(){} };
 
 function loadSetlistIndex(idx) {
   if (idx < 0 || idx >= setlist.length) return;
@@ -943,13 +929,10 @@ var SHARPS  = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
 var FLATS   = ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
 var ALL_NOTES = SHARPS.concat(FLATS);
 
-// Detect if a line is a chord line (no tab = no digits on string lines)
-// Tab lines contain digit runs like "0-2-3" etc.
 function isTabLine(line) {
   return /^[eEBGDAb]\|/.test(line) || /^\s*[\d\-\/\\hpbr~x]+\s*$/.test(line.trim()) && /\d/.test(line);
 }
 
-// Detect chord line: has at least one chord and no long lowercase words (lyrics)
 function isChordLine(line) {
   var trimmed = line.trim();
   if (trimmed === '') return false;
@@ -961,22 +944,18 @@ function isChordLine(line) {
     if (isChord(tokens[i])) {
       chordCount++;
     } else if (tokens[i].length > 3 && tokens[i] === tokens[i].toLowerCase()) {
-      // a token of 4+ chars that is all lowercase is likely a lyric word
       longLowerCount++;
     }
   }
-  // Has chords and no more than one non-chord lowercase word (allows labels like "Verse:", "Key:")
   return chordCount > 0 && longLowerCount === 0;
 }
 
 function isChord(token) {
-  // Match things like Am, C#maj7, Bb7, G/B, Fsus4, Dm7b5 etc.
   return /^[A-G][b#]?(maj|min|m|M|sus|aug|dim|add|[0-9]|\/[A-G][b#]?)*[0-9]?$/.test(token) && token.length <= 8;
 }
 
 function transposeChord(chord, semitones) {
   if (semitones === 0) return chord;
-  // Find root note (up to 2 chars)
   var root2 = chord.slice(0, 2);
   var root1 = chord.slice(0, 1);
   var rootIdx, rootLen;
@@ -991,17 +970,12 @@ function transposeChord(chord, semitones) {
     return chord;
   }
 
-  // Normalize to SHARPS index (0-11)
   var noteVal = rootIdx % 12;
   var newVal  = ((noteVal + semitones) % 12 + 12) % 12;
-
-  // Prefer flats if original used flat
   var useFlat = (root2.length > 1 && root2[1] === 'b') || (rootLen === 2 && root2[1] === 'b');
   var newRoot = useFlat ? FLATS[newVal] : SHARPS[newVal];
-
   var suffix = chord.slice(rootLen);
 
-  // Handle slash chords (bass note after /)
   var slashIdx = suffix.indexOf('/');
   if (slashIdx !== -1) {
     var bassStr = suffix.slice(slashIdx + 1);
@@ -1014,7 +988,6 @@ function transposeChord(chord, semitones) {
 
 function transposeChordLine(line, semitones) {
   if (semitones === 0) return line;
-  // Replace each chord token preserving spacing
   return line.replace(/[A-G][b#]?\S*/g, function(token) {
     if (isChord(token)) return transposeChord(token, semitones);
     return token;
@@ -1025,7 +998,7 @@ function applyTranspose(text, semitones) {
   if (semitones === 0) return text;
   var lines = text.split('\n');
   for (var i = 0; i < lines.length; i++) {
-    if (isTabLine(lines[i])) continue; // never touch tab lines
+    if (isTabLine(lines[i])) continue;
     if (isChordLine(lines[i])) lines[i] = transposeChordLine(lines[i], semitones);
   }
   return lines.join('\n');
@@ -1061,10 +1034,8 @@ function renderText() {
 
 // ── FONT SIZE ────────────────────────────────────────────────
 function applyFontSize() {
-  // Update chart text
   var pre = content.getElementsByTagName('pre')[0];
   if (pre) pre.style.fontSize = fontSize + 'px';
-  // Update file list items and setlist items proportionally
   var fileAnchors = fileList.getElementsByTagName('a');
   for (var i = 0; i < fileAnchors.length; i++) {
     fileAnchors[i].style.fontSize = fontSize + 'px';
@@ -1084,7 +1055,7 @@ document.getElementById('font-down').onclick = function() {
   applyFontSize();
 };
 
-// ── SPEED SLIDER ─────────────────────────────────────────────
+// ── SPEED ────────────────────────────────────────────────────
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(20, level));
   speedValEl.textContent = speedLevel;
@@ -1095,26 +1066,27 @@ document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel
 setSpeed(5);
 
 // ── AUTO-SCROLL ──────────────────────────────────────────────
-function pxPerTick() { return 0.024 * Math.pow(32, (speedLevel - 1) / 19); }
-
-// startScroll and stopScroll defined in unified scroll loop above
+// pxPerTick scales with content height so reading speed stays constant
+// regardless of font size / zoom level. 2000px is the reference baseline.
+function pxPerTick() {
+  var base = 0.024 * Math.pow(32, (speedLevel - 1) / 19);
+  var contentH = Math.max(1, scrollLayer.offsetHeight);
+  return base * (contentH / 2000);
+}
 
 document.getElementById('btn-up').onclick   = function() { stopScroll(); setScrollPos(0); };
 document.getElementById('btn-stop').onclick = function() { stopScroll(); };
 document.getElementById('btn-down').onclick = function() { startScroll(1); };
 
-// Pause on touch, resume on release
 // ── TRANSLATE3D SCROLL SYSTEM ────────────────────────────────
-// All scrolling is done via -webkit-transform translate3d on #scroll-layer.
-// scrollTop is never used — eliminates compositing conflicts on iOS 5.
 var scrollLayer      = document.getElementById('scroll-layer');
-var scrollPos        = 0;   // current Y offset in px (positive = scrolled down)
-var scrollMax        = 0;   // updated on content load
+var scrollPos        = 0;
+var scrollMax        = 0;
 var isAutoScrolling  = false;
 var autoScrollTimer  = null;
 var touchStartY      = 0;
 var touchLastY       = 0;
-var touchScrollStart = 0;   // scrollPos at touch start
+var touchScrollStart = 0;
 var isPinching         = false;
 var pinchStartDist     = 0;
 var pinchStartFontSize = 0;
@@ -1129,10 +1101,8 @@ function setScrollPos(y) {
   updateThumb();
 }
 
-// Touch handlers — pure JS, no native scroll
 scroller.ontouchstart = function(e) {
   if (e.touches.length === 2) {
-    // Two-finger pinch: record starting distance and font size
     var dx = e.touches[1].clientX - e.touches[0].clientX;
     var dy = e.touches[1].clientY - e.touches[0].clientY;
     pinchStartDist     = Math.sqrt(dx * dx + dy * dy);
@@ -1145,7 +1115,6 @@ scroller.ontouchstart = function(e) {
   touchStartY      = e.touches[0].clientY;
   touchLastY       = touchStartY;
   touchScrollStart = scrollPos;
-  // Pause autoscroll while finger is down
   if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
   e.preventDefault();
 };
@@ -1173,7 +1142,6 @@ scroller.ontouchmove = function(e) {
 
 scroller.ontouchend = function(e) {
   isPinching = false;
-  // Resume autoscroll after 400ms if it was active
   if (isAutoScrolling) {
     setTimeout(function() {
       if (isAutoScrolling) startAutoScrollTimer();
@@ -1193,7 +1161,6 @@ function startAutoScrollTimer() {
 }
 
 function startScroll(dir) {
-  // dir is always 1 (down only for autoscroll)
   scrollDir = dir;
   isAutoScrolling = true;
   startAutoScrollTimer();
@@ -1265,11 +1232,9 @@ function updateThumb() {
 }
 
 // ── FILE BROWSER ─────────────────────────────────────────────
-// Short tap → open from cache (instant); hold 600 ms → force live refresh
 var browseHoldTimer = null;
 var browseBtn = document.getElementById('btn-browse');
 
-// touchstart/touchend only for hold detection — no preventDefault so iOS tap still works
 var browseHoldFired = false;
 browseBtn.ontouchstart = function() {
   browseHoldFired = false;
@@ -1288,7 +1253,6 @@ browseBtn.ontouchstart = function() {
 browseBtn.ontouchend   = function() { if (browseHoldTimer) { clearTimeout(browseHoldTimer); browseHoldTimer = null; } };
 browseBtn.ontouchcancel = browseBtn.ontouchend;
 
-// onclick fires on normal short tap — use cache if available
 browseBtn.onclick = function() {
   if (browseHoldFired) { browseHoldFired = false; return; }
   fontMenuEl.style.display = 'none';
@@ -1298,11 +1262,8 @@ browseBtn.onclick = function() {
 
 document.getElementById('browser-close').onclick = function() { browserPanel.style.display = 'none'; };
 
-// Single delegated click handler for the file list — avoids attaching hundreds
-// of individual listeners every time the list is rendered.
 fileList.onclick = function(ev) {
   var target = ev.target || ev.srcElement;
-  // Walk up from target to find the element with a recognised class
   var node = target;
   while (node && node !== fileList) {
     var nc = node.className || '';
@@ -1311,7 +1272,6 @@ fileList.onclick = function(ev) {
   }
   if (!node || node === fileList) return;
   var nc = node.className;
-  // Find parent <li> for data-idx
   var li = node.parentNode;
   while (li && li !== fileList) {
     if (li.tagName && li.tagName.toUpperCase() === 'LI') break;
@@ -1464,9 +1424,6 @@ function parseDirectoryHtml(html, dir) {
   return entries;
 }
 
-// Build the whole list as one innerHTML string (far faster on iPad 1 than
-// individual createElement calls), then handle all clicks through a single
-// delegated handler on the container — see fileList.onclick below.
 function renderEntries(entries, fromCache) {
   _browserEntries = entries || [];
   if (!entries || entries.length === 0) {
@@ -1515,7 +1472,6 @@ function loadRemoteFile(path, name) {
       loadText(rawText);
       saveBookmark();
       browserPanel.style.display = 'none';
-      // update active setlist highlight
       for (var i = 0; i < setlist.length; i++) {
         if (setlist[i].path === path) { setlistIndex = i; break; }
       }
