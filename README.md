@@ -13,10 +13,10 @@ the HTML app (running in iCabMobile) can perform asynchronous fetches for .txt a
 
 Data Persistence: Setlists and History logs are handled via HTTP POST requests to the local GoodReader server, 
 ensuring data persists across sessions despite the browser’s limited local storage.
-LocalStorage is used instead of Cookies for persistance on a per song basis of 
-autoscroll speed
-scroll position
-zoom level
+LocalStorage is used instead of Cookies for persistance on a per song basis of:
+- autoscroll speed
+- scroll position
+- zoom level
 
 
 ## HARDWARE/SOFTWARE REQUIREMENTS
