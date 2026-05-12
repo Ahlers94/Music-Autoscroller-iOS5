@@ -100,4 +100,9 @@ or view available setlists.  Setlists are stored as .txt files on the Wifi Serve
 
 - 20 speeds available, press up and down arrows to change the speed.  The speed you chose will be remembered for each song.
 
+## TO BE ADDED
+
+- Right now I have it hardcoded to connect to 192.168.1.104:8080 as the web server. If you don't set it to a static IP address at this address, it will not work.
+- I know this is not best practice, but so far this is only for personal use.
+
 
