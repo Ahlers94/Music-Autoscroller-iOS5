@@ -4,6 +4,18 @@
 
 This is an HTML app designed for musicians to autoscroll .txt files on the original iPad running iOS 5.1.1 
 
+## WHY WOULD ANYONE USE AND IPAD 1?
+
+- If you are a DIY type this will save you hundreds or thousands of dollars in the long run on expensive hardware/subscriptions.
+
+- An origianl iPad is basically e-waste at this point, but you can recycle it into something usable
+
+- and not worry too much about getting lost/damaged/stolen.
+
+- It has a fairly large screen (7.75 × 5.82 inches) but not too large to fit in a tablet holder or in a bag.
+
+- Great battery life, recommend replacing the battery
+
 ## ARCHITECTURE
 
 To circumvent the lack of a File System Access API in iOS 5, 
@@ -17,19 +29,19 @@ LocalStorage is used instead of Cookies for persistance on a per song basis of:
 - autoscroll speed
 - scroll position
 - zoom level
-
+so if you have dialed in the desired scroll speed during practice it will be recalled on stage.
 
 ## HARDWARE/SOFTWARE REQUIREMENTS
 
-iPad 1st Generation
+- iPad 1st Generation
 
-iOS 5.1.1 (Jailbroken)
+- iOS 5.1.1 (Jailbroken)
 
-GoodReader (found on Archive.org)
+- GoodReader (found on Archive.org)
 
-iCabMobile browser (found on Archive.org)
+- iCabMobile browser (found on Archive.org)
 
-## WHY DO WE NEED ALL OF THIS?
+## WHY DO WE NEED ALL OF THIS SOFTWARE?
 
 It requires a Jailbroken iPad on iOS 5.1.1 with Backgrounder downloaded from Cydia, 
 GoodReader set up as a WiFi server, and iCabMobile as the browser.
@@ -78,6 +90,6 @@ You can pinch to zoom or adjust the text size by pressing the A- and A+ buttons 
 
 ## AUTOSCROLL SPEED
 
-There are 20 speeds available and you can press up and down arrows to change the speed.
+There are 20 speeds available and you can press up and down arrows to change the speed.  The speed you chose will be remembered for each song.
 
 
