@@ -4,7 +4,7 @@
 
 This is an HTML app designed for musicians to autoscroll .txt files on the original iPad running iOS 5.1.1 
 
-## WHY WOULD ANYONE USE AND IPAD 1?
+## WHY WOULD ANYONE USE AN IPAD 1?
 
 - If you are a DIY type this will save you hundreds or thousands of dollars in the long run on expensive hardware/subscriptions.
 
