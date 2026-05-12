@@ -12,7 +12,7 @@ This is an HTML app designed for musicians to autoscroll .txt files on the origi
 
 - and not worry too much about getting lost/damaged/stolen.
 
-- It has a fairly large screen (7.75 × 5.82 inches) but small enough to fit in a tablet holder or in a bag.
+- It has a fairly large screen (7.75 × 5.82 inches) but it's small enough to fit in a tablet holder or in a bag.
 
 - Great battery life, recommend replacing the battery
 
