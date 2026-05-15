@@ -86,7 +86,6 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   font-family:"Courier New",Courier,monospace; min-height:24px;
 }
 
-/* import textarea */
 #import-area {
   display:none; width:100%; height:80px; margin-top:6px;
   background:#1e1e1e; border:1px solid #444; border-radius:4px;
@@ -105,7 +104,6 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   padding-left:80px; padding-right:0;
   white-space:nowrap; overflow:hidden;
 }
-/* Top bar buttons share .tbtn */
 .tbtn {
   display:inline-block;
   background:#2a2a2a; color:#c8a84b;
@@ -149,12 +147,57 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   text-align:right; padding-left:6px; vertical-align:middle;
   line-height:44px; max-width:200px;
 }
-/* Remove old separate tr-btn rule */
 .tr-btn { color:#7e9ecb; }
 
-/* transpose bar removed — merged into topbar */
-#transpose-bar label { color:#888; font-size:12px; font-family:"Courier New",Courier,monospace; }
-
+/* ── SETTINGS PANEL ── */
+#settings-panel {
+  display:none; position:fixed;
+  top:44px; left:0; right:0; bottom:56px;
+  background:#111; z-index:200; overflow-y:auto; -webkit-overflow-scrolling:touch;
+}
+#settings-panel h2 {
+  color:#c8a84b; font-size:14px; font-family:"Courier New",Courier,monospace;
+  padding:14px 16px 8px; border-bottom:1px solid #2a2a2a; margin-bottom:0;
+}
+.settings-row {
+  padding:16px; border-bottom:1px solid #1e1e1e;
+}
+.settings-label {
+  color:#888; font-size:11px; font-family:"Courier New",Courier,monospace;
+  margin-bottom:8px; text-transform:uppercase; letter-spacing:1px;
+}
+.settings-desc {
+  color:#555; font-size:11px; font-family:"Courier New",Courier,monospace;
+  margin-top:6px; line-height:1.6;
+}
+#ip-input {
+  width:100%; background:#1e1e1e; border:1px solid #444; border-radius:4px;
+  color:#f0e8d0; font-size:16px; font-family:"Courier New",Courier,monospace;
+  padding:10px 12px; -webkit-appearance:none;
+  -webkit-box-sizing:border-box; box-sizing:border-box;
+}
+#ip-input:focus { border-color:#c8a84b; outline:none; }
+#ip-status {
+  margin-top:8px; font-size:12px; font-family:"Courier New",Courier,monospace;
+  color:#7ecb7e; min-height:18px;
+}
+.settings-btn {
+  display:inline-block; margin-top:10px;
+  background:#2a2a2a; color:#c8a84b; border:1px solid #555; border-radius:4px;
+  font-size:13px; font-family:"Courier New",Courier,monospace;
+  padding:8px 16px; cursor:pointer; -webkit-appearance:none;
+}
+.settings-btn.danger { color:#cb7e7e; border-color:#7a4a4a; }
+#settings-close {
+  display:block; margin:16px; padding:10px;
+  background:#2a2a2a; color:#aaa; border:1px solid #444; border-radius:4px;
+  font-size:13px; font-family:"Courier New",Courier,monospace;
+  text-align:center; cursor:pointer; -webkit-appearance:none; width:calc(100% - 32px);
+}
+#ip-ping-result {
+  margin-top:8px; font-size:12px; font-family:"Courier New",Courier,monospace;
+  min-height:18px;
+}
 
 /* ── MAIN SCROLLER ── */
 #scroller {
@@ -175,7 +218,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 #placeholder .big { font-size:48px; color:#333; }
 #placeholder p { margin-top:12px; font-size:15px; line-height:1.8; color:#555; }
 
-/* ── TOOLBAR — portrait 768px leapfrog ── */
+/* ── TOOLBAR ── */
 #toolbar {
   position:fixed; bottom:0; left:0; right:0; height:56px;
   background:#111; border-top:2px solid #c8a84b; z-index:100;
@@ -224,12 +267,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 .btn:active { opacity:0.7; }
 .btn .icon { font-size:18px; display:block; line-height:1; }
 .btn .lbl  { font-size:10px; display:block; margin-top:2px; }
-
 .btn-top    { background:#2d2d2d; color:#aaa;    border:1px solid #444; }
-.btn-stop   { background:#3a2d2d; color:#cb7e7e; border:1px solid #7a4a4a; }
-.btn-down   { background:#2d3a2d; color:#7ecb7e; border:1px solid #4a7a4a; }
-.btn-prev   { background:#2d2d3a; color:#7e9ecb; border:1px solid #4a5a7a; }
-.btn-next   { background:#2d2d3a; color:#7e9ecb; border:1px solid #4a5a7a; }
 .btn-browse { background:#2d2d3a; color:#7e9ecb; border:1px solid #4a5a7a; }
 .btn-font   { background:#3a332d; color:#c8a84b; border:1px solid #c8a84b; }
 
@@ -240,7 +278,6 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   background:#111; z-index:200; overflow-y:auto; -webkit-overflow-scrolling:touch;
 }
 #font-menu { z-index:300; }
-
 
 #browser-header {
   padding:10px 14px; background:#1a1a1a; border-bottom:1px solid #2a2a2a;
@@ -283,13 +320,11 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 
 <!-- SIDEBAR -->
 <div id="sidebar">
-  <!-- Tab switcher -->
   <div style="display:-webkit-box;display:flex;border-bottom:1px solid #2a2a2a;background:#111;">
     <button id="tab-setlist" class="sb-btn" style="-webkit-box-flex:1;flex:1;border-radius:0;border:none;border-right:1px solid #2a2a2a;padding:10px;font-size:13px;color:#c8a84b;">Setlist</button>
     <button id="tab-history" class="sb-btn" style="-webkit-box-flex:1;flex:1;border-radius:0;border:none;padding:10px;font-size:13px;color:#888;">History</button>
   </div>
 
-  <!-- SETLIST PANEL -->
   <div id="panel-setlist" style="display:-webkit-box;display:flex;-webkit-box-orient:vertical;flex-direction:column;-webkit-box-flex:1;flex:1;overflow:hidden;">
     <div id="sidebar-header">
       <h2>♩ Setlist</h2>
@@ -309,7 +344,6 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
       </div>
       <textarea id="import-area" placeholder="" style="display:none;width:100%;height:80px;margin-top:6px;background:#1e1e1e;border:1px solid #444;border-radius:4px;color:#f0e8d0;font-size:11px;font-family:'Courier New',Courier,monospace;padding:6px;-webkit-appearance:none;resize:none;-webkit-box-sizing:border-box;box-sizing:border-box;overflow-x:hidden;word-wrap:break-word;white-space:pre-wrap;"></textarea>
     </div>
-    <!-- Setlist file browser -->
     <div id="setlist-browser" style="display:none;border-top:1px solid #2a2a2a;overflow-y:auto;-webkit-overflow-scrolling:touch;">
       <div style="padding:8px 12px;background:#161616;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;gap:8px;">
         <span style="color:#888;font-size:12px;font-family:'Courier New',Courier,monospace;-webkit-box-flex:1;flex:1;">Setlists</span>
@@ -320,7 +354,6 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
     </div>
   </div>
 
-  <!-- HISTORY PANEL -->
   <div id="panel-history" style="display:none;-webkit-box-flex:1;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;">
     <div style="padding:10px 12px;background:#111;border-bottom:1px solid #2a2a2a;display:-webkit-box;display:flex;-webkit-box-align:center;align-items:center;gap:8px;">
       <span style="color:#c8a84b;font-size:14px;-webkit-box-flex:1;flex:1;">♩ Performance History</span>
@@ -330,7 +363,7 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   </div>
 </div>
 
-<!-- TOP BAR: [Top][☰][Browse][Tr-][Val][Tr+][rst][Font][Title] -->
+<!-- TOP BAR -->
 <div id="topbar">
   <button class="tbtn btn-top"    id="btn-up">    <span class="icon">▲</span><span class="lbl">Top</span></button>
   <button class="tbtn"            id="menu-btn">  <span class="icon">☰</span><span class="lbl">List</span></button>
@@ -340,11 +373,58 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
   <button class="tbtn tr-btn"     id="tr-up">     <span class="icon">+</span><span class="lbl">Tr</span></button>
   <span id="transpose-reset">rst</span>
   <button class="tbtn btn-font"   id="btn-font">  <span class="icon">Aa</span><span class="lbl">Font</span></button>
+  <!-- NEW: Settings button -->
+  <button class="tbtn" id="btn-settings" style="color:#888;"><span class="icon">⚙</span><span class="lbl">Setup</span></button>
   <span id="filename">♩ No file loaded</span>
 </div>
 
 <!-- SCROLL INDICATOR -->
 <div id="scroll-indicator"><div id="scroll-thumb"></div></div>
+
+<!-- SETTINGS PANEL -->
+<div id="settings-panel">
+  <h2>⚙ Settings</h2>
+
+  <div class="settings-row">
+    <div class="settings-label">GoodReader Server IP</div>
+    <input id="ip-input" type="text" inputmode="decimal"
+           placeholder="192.168.1.104" autocorrect="off" autocapitalize="off">
+    <div id="ip-status"></div>
+    <div style="display:-webkit-box;display:flex;gap:8px;margin-top:10px;">
+      <button class="settings-btn" id="ip-save">Save IP</button>
+      <button class="settings-btn" id="ip-test">Test Connection</button>
+    </div>
+    <div id="ip-ping-result"></div>
+    <div class="settings-desc">
+      Find your iPad's IP in:<br>
+      Settings → Wi-Fi → tap your network name → IP Address<br><br>
+      The GoodReader server must be running on port 8080.<br>
+      Tap <strong style="color:#c8a84b;">Test Connection</strong> to verify before playing.
+    </div>
+  </div>
+
+  <div class="settings-row">
+    <div class="settings-label">Base Path</div>
+    <input id="path-input" type="text"
+           placeholder="/My Documents" autocorrect="off" autocapitalize="off"
+           style="width:100%;background:#1e1e1e;border:1px solid #444;border-radius:4px;color:#f0e8d0;font-size:16px;font-family:'Courier New',Courier,monospace;padding:10px 12px;-webkit-appearance:none;-webkit-box-sizing:border-box;box-sizing:border-box;">
+    <button class="settings-btn" id="path-save" style="margin-top:10px;">Save Path</button>
+    <div class="settings-desc" style="margin-top:8px;">
+      The root folder GoodReader serves your .txt files from.<br>
+      Default: /My Documents
+    </div>
+  </div>
+
+  <div class="settings-row">
+    <div class="settings-label">Clear All Saved Data</div>
+    <div class="settings-desc" style="margin-bottom:10px;">
+      Removes all song preferences, bookmarks, setlists, and history from this browser.
+    </div>
+    <button class="settings-btn danger" id="clear-all-data">Clear Everything</button>
+  </div>
+
+  <button id="settings-close">✕ Close Settings</button>
+</div>
 
 <!-- CONTENT -->
 <div id="scroller">
@@ -354,13 +434,14 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
       <div class="big">♩</div>
       <p>Tap <strong style="color:#7e9ecb">♩ Open</strong> in the top bar to load a song.<br><br>
          Tap <strong style="color:#c8a84b">☰ List</strong> for setlists.<br><br>
-         Use <strong style="color:#7ecb7e">▼ Play</strong> to auto-scroll.</p>
+         Use <strong style="color:#7ecb7e">▼ Play</strong> to auto-scroll.<br><br>
+         Tap <strong style="color:#888">⚙ Setup</strong> to change server IP.</p>
     </div>
   </div>
   </div>
 </div>
 
-<!-- TOOLBAR — 4 corridors: [Play/Stop] [Prev/Next] [A-/A+] [Spd-/Val/Spd+] -->
+<!-- TOOLBAR -->
 <div id="toolbar">
   <div class="corridor" id="corridor-1">
     <button class="btn btn-down" id="btn-down"><span class="icon">▼</span><span class="lbl">Play</span></button>
@@ -383,7 +464,6 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 
 <!-- BROWSER PANEL -->
 <div id="browser-panel">
-
   <div id="browser-header">
     <span id="browser-path">/var/mobile/Documents</span>
     <span id="browser-close">✕ Close</span>
@@ -396,10 +476,15 @@ body { background:#1a1a1a; color:#f0e8d0; font-family:"Courier New",Courier,mono
 <div id="font-menu"></div>
 
 <script>
-// ── CONFIG ──────────────────────────────────────────────────
-var IPAD_IP   = '192.168.1.104';
-var GR_PORT   = 8080;
-var BASE_PATH = '/My Documents';
+// ── CONFIG (overridden by localStorage if set) ───────────────
+var DEFAULT_IP   = '192.168.1.104';
+var DEFAULT_PORT = 8080;
+var DEFAULT_PATH = '/My Documents';
+
+// Load saved values or fall back to defaults
+var IPAD_IP   = lsGet('sr_server_ip')   || DEFAULT_IP;
+var GR_PORT   = DEFAULT_PORT;
+var BASE_PATH = lsGet('sr_base_path')  || DEFAULT_PATH;
 var currentPath = BASE_PATH;
 
 // ── STATE ────────────────────────────────────────────────────
@@ -408,12 +493,11 @@ var speedLevel   = 3;
 var fontSize     = 18;
 var isDragging   = false;
 var currentFont  = '"Courier New", Courier, monospace';
-var rawText      = '';       // original file text (untransposed)
+var rawText      = '';
 var transposeVal = 0;
 var currentFilePath = '';
 var currentFileName = '';
 
-// Setlist: array of {name, path}
 var setlist      = [];
 var setlistIndex = -1;
 
@@ -423,11 +507,10 @@ var content       = document.getElementById('content');
 var browserPanel  = document.getElementById('browser-panel');
 var fontMenuEl    = document.getElementById('font-menu');
 var fileList      = document.getElementById('file-list');
-var _browserEntries = []; // current rendered entry list, used by delegated onclick
+var _browserEntries = [];
 var browserStatus = document.getElementById('browser-status');
 var browserPath   = document.getElementById('browser-path');
 var fnLabel       = document.getElementById('filename');
-var speedFill     = document.getElementById('speed-fill');
 var speedValEl    = document.getElementById('speed-val');
 var thumb         = document.getElementById('scroll-thumb');
 var transpValEl   = document.getElementById('transpose-val');
@@ -438,6 +521,124 @@ var slStatus      = document.getElementById('setlist-status');
 var slNameInput   = document.getElementById('setlist-name');
 
 function baseURL() { return 'http://' + IPAD_IP + ':' + GR_PORT; }
+
+// ── LOCALSTORAGE HELPERS ─────────────────────────────────────
+// Defined first because CONFIG block above calls lsGet()
+function lsSet(key, val) {
+  try { localStorage.setItem(key, val); } catch(e) {}
+}
+function lsGet(key) {
+  try { return localStorage.getItem(key) || ''; } catch(e) { return ''; }
+}
+function lsDel(key) {
+  try { localStorage.removeItem(key); } catch(e) {}
+}
+
+// ── SETTINGS PANEL ───────────────────────────────────────────
+var settingsPanel = document.getElementById('settings-panel');
+var ipInput       = document.getElementById('ip-input');
+var ipStatus      = document.getElementById('ip-status');
+var ipPingResult  = document.getElementById('ip-ping-result');
+var pathInput     = document.getElementById('path-input');
+
+// Populate fields with current values on load
+ipInput.value   = IPAD_IP;
+pathInput.value = BASE_PATH;
+
+document.getElementById('btn-settings').onclick = function() {
+  var isOpen = settingsPanel.style.display === 'block';
+  closeAllPanels();
+  if (!isOpen) {
+    settingsPanel.style.display = 'block';
+    // Refresh displayed values each time panel opens
+    ipInput.value   = IPAD_IP;
+    pathInput.value = BASE_PATH;
+    ipStatus.textContent = '';
+    ipPingResult.textContent = '';
+  }
+};
+
+document.getElementById('settings-close').onclick = function() {
+  settingsPanel.style.display = 'none';
+};
+
+document.getElementById('ip-save').onclick = function() {
+  var val = ipInput.value.trim();
+  // Basic IPv4 validation
+  if (!val || !/^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(val)) {
+    ipStatus.style.color = '#cb7e7e';
+    ipStatus.textContent = '✕ Enter a valid IP address (e.g. 192.168.1.104)';
+    return;
+  }
+  IPAD_IP = val;
+  lsSet('sr_server_ip', val);
+  ipStatus.style.color = '#7ecb7e';
+  ipStatus.textContent = '✓ Saved. Reconnecting to ' + val + ':' + GR_PORT;
+};
+
+document.getElementById('ip-test').onclick = function() {
+  var val = ipInput.value.trim();
+  if (!val) { ipPingResult.style.color = '#cb7e7e'; ipPingResult.textContent = 'Enter an IP first.'; return; }
+  ipPingResult.style.color = '#888';
+  ipPingResult.textContent = 'Testing ' + val + ':' + GR_PORT + '...';
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'http://' + val + ':' + GR_PORT + BASE_PATH, true);
+  xhr.timeout = 4000;
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState !== 4) return;
+    if (xhr.status === 200) {
+      ipPingResult.style.color = '#7ecb7e';
+      ipPingResult.textContent = '✓ Connected! GoodReader server is reachable.';
+    } else {
+      ipPingResult.style.color = '#cb7e7e';
+      ipPingResult.textContent = '✕ Got status ' + xhr.status + ' — server may be running but path is wrong.';
+    }
+  };
+  xhr.onerror = function() {
+    ipPingResult.style.color = '#cb7e7e';
+    ipPingResult.textContent = '✕ Could not reach ' + val + ':' + GR_PORT + '. Is GoodReader server running?';
+  };
+  xhr.ontimeout = function() {
+    ipPingResult.style.color = '#cb7e7e';
+    ipPingResult.textContent = '✕ Timed out. Check IP and that GoodReader is open.';
+  };
+  xhr.send();
+};
+
+document.getElementById('path-save').onclick = function() {
+  var val = pathInput.value.trim();
+  if (!val || val.charAt(0) !== '/') {
+    alert('Path must start with /');
+    return;
+  }
+  BASE_PATH = val;
+  currentPath = val;
+  lsSet('sr_base_path', val);
+  var btn = document.getElementById('path-save');
+  btn.textContent = '✓ Saved';
+  setTimeout(function() { btn.textContent = 'Save Path'; }, 1500);
+};
+
+document.getElementById('clear-all-data').onclick = function() {
+  if (!confirm('Clear ALL saved data?\n\nThis removes song preferences, bookmarks, setlists, history, and server settings.')) return;
+  try { localStorage.clear(); } catch(e) {}
+  IPAD_IP   = DEFAULT_IP;
+  BASE_PATH = DEFAULT_PATH;
+  currentPath = DEFAULT_PATH;
+  ipInput.value   = DEFAULT_IP;
+  pathInput.value = DEFAULT_PATH;
+  setlist = []; setlistIndex = -1;
+  slNameInput.value = '';
+  ipStatus.style.color = '#7ecb7e';
+  ipStatus.textContent = '✓ Cleared. Defaults restored.';
+};
+
+// ── CLOSE ALL PANELS HELPER ───────────────────────────────────
+function closeAllPanels() {
+  browserPanel.style.display    = 'none';
+  fontMenuEl.style.display      = 'none';
+  settingsPanel.style.display   = 'none';
+}
 
 // ── SIDEBAR SWIPE ────────────────────────────────────────────
 var swipeStartX = null;
@@ -466,20 +667,8 @@ overlay.onclick = closeSidebar;
 
 function openSidebar()  { sidebar.className = 'open'; overlay.className = 'open'; renderSetlist(); }
 
-// Restore setlist from cookie on load
 loadSetlistCookie();
 function closeSidebar() { sidebar.className = ''; overlay.className = ''; }
-
-// ── LOCALSTORAGE HELPERS ─────────────────────────────────────
-function lsSet(key, val) {
-  try { localStorage.setItem(key, val); } catch(e) {}
-}
-function lsGet(key) {
-  try { return localStorage.getItem(key) || ''; } catch(e) { return ''; }
-}
-function lsDel(key) {
-  try { localStorage.removeItem(key); } catch(e) {}
-}
 
 function escHtml(s) {
   return ('' + s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -666,7 +855,6 @@ function renderSetlist() {
   saveSetlistCookie();
 }
 
-// Simple touch drag-to-reorder
 var dragSrcIdx = null;
 var dragLi     = null;
 
@@ -728,7 +916,6 @@ document.getElementById('sl-clear').onclick = function() {
 
 // ── SAVE SETLIST → GOODREADER ─────────────────────────────────
 var GR_SETS_PATH = '/My Documents/Setlists/';
-var GR_BASE      = 'http://192.168.1.104:8080';
 
 function buildSetlistText() {
   var name = slNameInput.value.trim() || 'setlist';
@@ -752,7 +939,7 @@ document.getElementById('sl-save').onclick = function() {
   body += sl.text + '\r\n';
   body += '--' + boundary + '--\r\n';
 
-  var postURL = GR_BASE + '/My Documents/Setlists';
+  var postURL = baseURL() + '/My Documents/Setlists';
   var xhr = new XMLHttpRequest();
   xhr.open('POST', postURL, true);
   xhr.setRequestHeader('Content-Type', 'multipart/form-data; boundary=' + boundary);
@@ -761,7 +948,7 @@ document.getElementById('sl-save').onclick = function() {
     if (xhr.status === 200 || xhr.status === 201 || xhr.status === 204) {
       slStatus.textContent = 'Saved: ' + filename;
     } else {
-      var putURL = GR_BASE + '/My Documents/Setlists/' + encodeURIComponent(filename);
+      var putURL = baseURL() + '/My Documents/Setlists/' + encodeURIComponent(filename);
       var xhr2 = new XMLHttpRequest();
       xhr2.open('PUT', putURL, true);
       xhr2.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
@@ -799,7 +986,7 @@ function loadSetlistFolder() {
   statusEl.textContent = 'Loading...';
   listEl.innerHTML = '';
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', GR_BASE + '/My Documents/Setlists', true);
+  xhr.open('GET', baseURL() + '/My Documents/Setlists', true);
   xhr.onreadystatechange = function() {
     if (xhr.readyState !== 4) return;
     if (xhr.status === 200) { statusEl.textContent = ''; parseSetlistFolder(xhr.responseText); }
@@ -843,7 +1030,7 @@ function parseSetlistFolder(html) {
           ev.preventDefault(); ev.stopPropagation();
           if (!confirm('Delete ' + file.name + '?')) return;
           var xhr = new XMLHttpRequest();
-          xhr.open('DELETE', GR_BASE + file.href, true);
+          xhr.open('DELETE', baseURL() + file.href, true);
           xhr.onreadystatechange = function() {
             if (xhr.readyState !== 4) return;
             if (xhr.status === 200 || xhr.status === 204 || xhr.status === 404) {
@@ -872,7 +1059,7 @@ function fetchAndImportSetlist(href, name) {
   var statusEl = document.getElementById('sl-browser-status');
   statusEl.textContent = 'Loading ' + name + '...';
   var xhr = new XMLHttpRequest();
-  xhr.open('GET', GR_BASE + href, true);
+  xhr.open('GET', baseURL() + href, true);
   xhr.onreadystatechange = function() {
     if (xhr.readyState !== 4) return;
     if (xhr.status === 200) {
@@ -896,9 +1083,6 @@ function fetchAndImportSetlist(href, name) {
   xhr.onerror = function() { statusEl.textContent = 'Network error.'; };
   xhr.send();
 }
-
-var importArea = document.getElementById('import-area');
-var importGo   = { onclick: function(){} };
 
 function loadSetlistIndex(idx) {
   if (idx < 0 || idx >= setlist.length) return;
@@ -934,11 +1118,8 @@ function isChordLine(line) {
   var chordCount = 0;
   var longLowerCount = 0;
   for (var i = 0; i < tokens.length; i++) {
-    if (isChord(tokens[i])) {
-      chordCount++;
-    } else if (tokens[i].length > 3 && tokens[i] === tokens[i].toLowerCase()) {
-      longLowerCount++;
-    }
+    if (isChord(tokens[i])) { chordCount++; }
+    else if (tokens[i].length > 3 && tokens[i] === tokens[i].toLowerCase()) { longLowerCount++; }
   }
   return chordCount > 0 && longLowerCount === 0;
 }
@@ -952,30 +1133,20 @@ function transposeChord(chord, semitones) {
   var root2 = chord.slice(0, 2);
   var root1 = chord.slice(0, 1);
   var rootIdx, rootLen;
-
-  if (ALL_NOTES.indexOf(root2) !== -1) {
-    rootIdx = ALL_NOTES.indexOf(root2);
-    rootLen = 2;
-  } else if (ALL_NOTES.indexOf(root1) !== -1) {
-    rootIdx = ALL_NOTES.indexOf(root1);
-    rootLen = 1;
-  } else {
-    return chord;
-  }
-
+  if (ALL_NOTES.indexOf(root2) !== -1) { rootIdx = ALL_NOTES.indexOf(root2); rootLen = 2; }
+  else if (ALL_NOTES.indexOf(root1) !== -1) { rootIdx = ALL_NOTES.indexOf(root1); rootLen = 1; }
+  else { return chord; }
   var noteVal = rootIdx % 12;
   var newVal  = ((noteVal + semitones) % 12 + 12) % 12;
   var useFlat = (root2.length > 1 && root2[1] === 'b') || (rootLen === 2 && root2[1] === 'b');
   var newRoot = useFlat ? FLATS[newVal] : SHARPS[newVal];
   var suffix = chord.slice(rootLen);
-
   var slashIdx = suffix.indexOf('/');
   if (slashIdx !== -1) {
     var bassStr = suffix.slice(slashIdx + 1);
     var transposedBass = transposeChord(bassStr, semitones);
     suffix = suffix.slice(0, slashIdx + 1) + transposedBass;
   }
-
   return newRoot + suffix;
 }
 
@@ -1029,34 +1200,19 @@ function renderText() {
 function applyFontSize() {
   var pre = content.getElementsByTagName('pre')[0];
   if (pre) pre.style.fontSize = fontSize + 'px';
-  var fileAnchors = fileList.getElementsByTagName('a');
-  for (var i = 0; i < fileAnchors.length; i++) {
-    fileAnchors[i].style.fontSize = fontSize + 'px';
-    fileAnchors[i].style.lineHeight = (fontSize + 14) + 'px';
-  }
-  var fileItems = fileList.getElementsByTagName('li');
-  for (var j = 0; j < fileItems.length; j++) {
-    fileItems[j].style.height = (fontSize + 14) + 'px';
-  }
 }
 document.getElementById('font-up').onclick = function() {
-  fontSize = Math.min(fontSize + 2, 40);
-  applyFontSize();
-  saveSongPrefs();
+  fontSize = Math.min(fontSize + 2, 40); applyFontSize(); saveSongPrefs();
 };
 document.getElementById('font-down').onclick = function() {
-  fontSize = Math.max(fontSize - 2, 12);
-  applyFontSize();
-  saveSongPrefs();
+  fontSize = Math.max(fontSize - 2, 12); applyFontSize(); saveSongPrefs();
 };
 
-// ── PER-SONG PREFS (font size + speed) ───────────────────────
+// ── PER-SONG PREFS ────────────────────────────────────────────
 function saveSongPrefs() {
   if (!currentFilePath) return;
   lsSet('songprefs|' + currentFilePath, JSON.stringify({
-    fontSize:   fontSize,
-    speedLevel: speedLevel,
-    scrollPos:  Math.round(scrollPos)
+    fontSize: fontSize, speedLevel: speedLevel, scrollPos: Math.round(scrollPos)
   }));
 }
 
@@ -1073,7 +1229,6 @@ function restoreSongPrefs(path) {
   } catch(e) {}
 }
 
-
 function setSpeed(level) {
   speedLevel = Math.max(1, Math.min(20, level));
   speedValEl.textContent = speedLevel;
@@ -1085,11 +1240,9 @@ document.getElementById('speed-up').onclick   = function() { setSpeed(speedLevel
 setSpeed(5);
 
 // ── AUTO-SCROLL ──────────────────────────────────────────────
-// pxPerTick scales with content height so reading speed stays constant
-// regardless of font size / zoom level. 2000px is the reference baseline.
 function pxPerTick() {
   var base = 0.024 * Math.pow(32, (speedLevel - 1) / 19);
-  var contentH = Math.max(1, scrollLayer.offsetHeight);
+  var contentH = scrollLayer ? Math.max(1, scrollLayer.offsetHeight) : 2000;
   return base * (contentH / 2000);
 }
 
@@ -1100,11 +1253,9 @@ document.getElementById('btn-down').onclick = function() { startScroll(1); };
 // ── TRANSLATE3D SCROLL SYSTEM ────────────────────────────────
 var scrollLayer      = document.getElementById('scroll-layer');
 var scrollPos        = 0;
-var scrollMax        = 0;
 var isAutoScrolling  = false;
 var autoScrollTimer  = null;
 var touchStartY      = 0;
-var touchLastY       = 0;
 var touchScrollStart = 0;
 var isPinching         = false;
 var pinchStartDist     = 0;
@@ -1127,12 +1278,10 @@ scroller.ontouchstart = function(e) {
     pinchStartDist     = Math.sqrt(dx * dx + dy * dy);
     pinchStartFontSize = fontSize;
     isPinching         = true;
-    e.preventDefault();
-    return;
+    e.preventDefault(); return;
   }
   isPinching       = false;
   touchStartY      = e.touches[0].clientY;
-  touchLastY       = touchStartY;
   touchScrollStart = scrollPos;
   if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
   e.preventDefault();
@@ -1146,15 +1295,10 @@ scroller.ontouchmove = function(e) {
     var scale = dist / pinchStartDist;
     var newSize = Math.round(pinchStartFontSize * scale);
     newSize = Math.max(12, Math.min(40, newSize));
-    if (newSize !== fontSize) {
-      fontSize = newSize;
-      applyFontSize();
-    }
-    e.preventDefault();
-    return;
+    if (newSize !== fontSize) { fontSize = newSize; applyFontSize(); }
+    e.preventDefault(); return;
   }
   var dy2 = touchStartY - e.touches[0].clientY;
-  touchLastY = e.touches[0].clientY;
   setScrollPos(touchScrollStart + dy2);
   e.preventDefault();
 };
@@ -1162,9 +1306,7 @@ scroller.ontouchmove = function(e) {
 scroller.ontouchend = function(e) {
   isPinching = false;
   if (isAutoScrolling) {
-    setTimeout(function() {
-      if (isAutoScrolling) startAutoScrollTimer();
-    }, 400);
+    setTimeout(function() { if (isAutoScrolling) startAutoScrollTimer(); }, 400);
   }
   debouncedSaveBookmark();
 };
@@ -1180,14 +1322,11 @@ function startAutoScrollTimer() {
 }
 
 function startScroll(dir) {
-  scrollDir = dir;
-  isAutoScrolling = true;
-  startAutoScrollTimer();
+  scrollDir = dir; isAutoScrolling = true; startAutoScrollTimer();
 }
 
 function stopScroll() {
-  isAutoScrolling = false;
-  scrollDir = 0;
+  isAutoScrolling = false; scrollDir = 0;
   if (autoScrollTimer) { clearInterval(autoScrollTimer); autoScrollTimer = null; }
   saveBookmark();
 }
@@ -1206,31 +1345,22 @@ function saveBookmark() {
 
 function debouncedSaveBookmark() {
   if (bookmarkSaveTimer) clearTimeout(bookmarkSaveTimer);
-  bookmarkSaveTimer = setTimeout(function() {
-    saveBookmark();
-    saveSongPrefs();
-  }, 800);
+  bookmarkSaveTimer = setTimeout(function() { saveBookmark(); saveSongPrefs(); }, 800);
 }
 
 function restoreBookmark() {
   var path, name;
-  try {
-    path = localStorage.getItem('bookmark|file');
-    name = localStorage.getItem('bookmark|name');
-  } catch(ex) { return; }
+  try { path = localStorage.getItem('bookmark|file'); name = localStorage.getItem('bookmark|name'); } catch(ex) { return; }
   if (!path || !name) return;
   var xhr = new XMLHttpRequest();
   xhr.open('GET', baseURL() + path, true);
   xhr.onreadystatechange = function() {
     if (xhr.readyState !== 4) return;
     if (xhr.status === 200) {
-      currentFilePath = path;
-      currentFileName = name;
+      currentFilePath = path; currentFileName = name;
       fnLabel.textContent = '\u266a ' + name;
       rawText = xhr.responseText;
-      transposeVal = 0;
-      transpValEl.textContent = '0';
-      transpValEl.style.color = '#7e9ecb';
+      transposeVal = 0; transpValEl.textContent = '0'; transpValEl.style.color = '#7e9ecb';
       loadText(rawText);
       restoreSongPrefs(path);
     }
@@ -1243,7 +1373,7 @@ function restoreBookmark() {
 function updateThumb() {
   var max = getScrollMax();
   if (max <= 0) { thumb.style.height = '0px'; return; }
-  var viewH = scroller.offsetHeight;
+  var viewH  = scroller.offsetHeight;
   var layerH = scrollLayer.offsetHeight;
   var h = Math.max(30, (viewH / layerH) * viewH);
   thumb.style.height = h + 'px';
@@ -1251,17 +1381,17 @@ function updateThumb() {
 }
 
 // ── FILE BROWSER ─────────────────────────────────────────────
-var browseHoldTimer = null;
+var browseHoldTimer  = null;
+var browseHoldFired  = false;
 var browseBtn = document.getElementById('btn-browse');
 
-var browseHoldFired = false;
 browseBtn.ontouchstart = function() {
   browseHoldFired = false;
   browseHoldTimer = setTimeout(function() {
     browseHoldFired = true;
     browseHoldTimer = null;
     clearDirCache(currentPath);
-    fontMenuEl.style.display = 'none';
+    closeAllPanels();
     browserPanel.style.display = 'block';
     browserStatus.style.display = 'block';
     browserStatus.textContent = '↺ Refreshing...';
@@ -1269,12 +1399,12 @@ browseBtn.ontouchstart = function() {
     fetchDirectory(currentPath, true);
   }, 600);
 };
-browseBtn.ontouchend   = function() { if (browseHoldTimer) { clearTimeout(browseHoldTimer); browseHoldTimer = null; } };
+browseBtn.ontouchend    = function() { if (browseHoldTimer) { clearTimeout(browseHoldTimer); browseHoldTimer = null; } };
 browseBtn.ontouchcancel = browseBtn.ontouchend;
 
 browseBtn.onclick = function() {
   if (browseHoldFired) { browseHoldFired = false; return; }
-  fontMenuEl.style.display = 'none';
+  closeAllPanels();
   browserPanel.style.display = 'block';
   browseTo(BASE_PATH);
 };
@@ -1306,29 +1436,20 @@ fileList.onclick = function(ev) {
     if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
     if (e.type === 'dir') browseTo(e.path);
     else if (e.type === 'txt') loadRemoteFile(e.path, e.name);
-
   } else if (nc === 'fl-add') {
     if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
     for (var j = 0; j < setlist.length; j++) {
-      if (setlist[j].path === e.path) {
-        node.textContent = '\u2713'; node.style.color = '#888';
-        slStatus.textContent = e.name + ' already in setlist.'; return;
-      }
+      if (setlist[j].path === e.path) { node.textContent = '\u2713'; node.style.color = '#888'; slStatus.textContent = e.name + ' already in setlist.'; return; }
     }
     setlist.push({ name: e.name, path: e.path });
     if (setlistIndex === -1) setlistIndex = 0;
     node.textContent = '\u2713'; node.style.color = '#c8a84b';
     slStatus.textContent = '+ ' + e.name + ' added.';
-
   } else if (nc === 'fl-rem') {
     if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
     var found = false;
     for (var j = 0; j < setlist.length; j++) {
-      if (setlist[j].path === e.path) {
-        setlist.splice(j, 1);
-        if (setlistIndex >= setlist.length) setlistIndex = setlist.length - 1;
-        found = true; break;
-      }
+      if (setlist[j].path === e.path) { setlist.splice(j, 1); if (setlistIndex >= setlist.length) setlistIndex = setlist.length - 1; found = true; break; }
     }
     if (found) {
       var spans = li.getElementsByTagName('span');
@@ -1336,10 +1457,7 @@ fileList.onclick = function(ev) {
         if (spans[s].className === 'fl-add') { spans[s].textContent = '+'; spans[s].style.color = '#7ecb7e'; break; }
       }
       slStatus.textContent = '\u2212 ' + e.name + ' removed.';
-    } else {
-      slStatus.textContent = e.name + ' not in setlist.';
-    }
-
+    } else { slStatus.textContent = e.name + ' not in setlist.'; }
   } else if (nc === 'fl-ren') {
     if (ev.preventDefault) ev.preventDefault(); else ev.returnValue = false;
     var newName = prompt('Rename file:', e.name);
@@ -1353,20 +1471,12 @@ fileList.onclick = function(ev) {
     renXhr.onreadystatechange = function() {
       if (renXhr.readyState !== 4) return;
       if (renXhr.status === 201 || renXhr.status === 204) {
-        if (currentFilePath === e.path) {
-          currentFilePath = newPath;
-          currentFileName = newName;
-          fnLabel.textContent = '\u266a ' + newName;
-        }
+        if (currentFilePath === e.path) { currentFilePath = newPath; currentFileName = newName; fnLabel.textContent = '\u266a ' + newName; }
         for (var j = 0; j < setlist.length; j++) {
           if (setlist[j].path === e.path) { setlist[j].path = newPath; setlist[j].name = newName; }
         }
-        saveSetlistCookie();
-        clearDirCache(currentPath);
-        browseTo(currentPath);
-      } else {
-        alert('Rename failed (status ' + renXhr.status + '). GoodReader may not support MOVE.');
-      }
+        saveSetlistCookie(); clearDirCache(currentPath); browseTo(currentPath);
+      } else { alert('Rename failed (status ' + renXhr.status + '). GoodReader may not support MOVE.'); }
     };
     renXhr.onerror = function() { alert('Network error during rename.'); };
     renXhr.send();
@@ -1380,8 +1490,7 @@ function browseTo(path) {
   if (cached) {
     browserPath.textContent = path + ' [cached]';
     browserStatus.style.display = 'none';
-    renderEntries(cached, true);
-    return;
+    renderEntries(cached, true); return;
   }
   browserPath.textContent = path;
   browserStatus.style.display = 'block';
@@ -1401,9 +1510,7 @@ function fetchDirectory(path, saveCache) {
       var entries = parseDirectoryHtml(xhr.responseText, path);
       if (saveCache) saveDirCache(path, entries);
       renderEntries(entries, false);
-    } else {
-      browserStatus.textContent = 'Could not load folder. Status: ' + xhr.status;
-    }
+    } else { browserStatus.textContent = 'Could not load folder. Status: ' + xhr.status; }
   };
   xhr.onerror = function() { browserStatus.textContent = 'Connection failed. Is GoodReader web server running?'; };
   xhr.send();
@@ -1462,9 +1569,7 @@ function renderEntries(entries, fromCache) {
     if (e.type === 'txt') {
       html += '<span class="fl-add" ' + SP + 'color:#7ecb7e;padding:0 7px;">+</span>';
       html += '<span class="fl-rem" ' + SP + 'color:#cb7e7e;padding:0 6px;">\u2212</span>';
-      if (!fromCache) {
-        html += '<span class="fl-ren" ' + SP + 'color:#c8a84b;padding:0 7px 0 4px;">\u270e</span>';
-      }
+      if (!fromCache) { html += '<span class="fl-ren" ' + SP + 'color:#c8a84b;padding:0 7px 0 4px;">\u270e</span>'; }
     }
     html += '</li>';
   }
@@ -1479,47 +1584,33 @@ function loadRemoteFile(path, name) {
   xhr.onreadystatechange = function() {
     if (xhr.readyState !== 4) return;
     if (xhr.status === 200) {
-      currentFilePath = path;
-      currentFileName = name;
+      currentFilePath = path; currentFileName = name;
       fnLabel.textContent = '♩ ' + name;
       rawText = xhr.responseText;
-      logPerformance(name, path);
-      renderHistory();
-      transposeVal = 0;
-      transpValEl.textContent = '0';
-      transpValEl.style.color = '#7e9ecb';
-      loadText(rawText);
-      restoreSongPrefs(path);
-      saveBookmark();
+      logPerformance(name, path); renderHistory();
+      transposeVal = 0; transpValEl.textContent = '0'; transpValEl.style.color = '#7e9ecb';
+      loadText(rawText); restoreSongPrefs(path); saveBookmark();
       browserPanel.style.display = 'none';
       for (var i = 0; i < setlist.length; i++) {
         if (setlist[i].path === path) { setlistIndex = i; break; }
       }
-    } else {
-      alert('Could not load file. Status: ' + xhr.status);
-      browserStatus.style.display = 'none';
-    }
+    } else { alert('Could not load file. Status: ' + xhr.status); browserStatus.style.display = 'none'; }
   };
   xhr.onerror = function() { alert('Network error.'); browserStatus.style.display = 'none'; };
   xhr.send();
 }
 
 function loadText(text) {
-  rawText = text;
-  content.innerHTML = '';
+  rawText = text; content.innerHTML = '';
   var pre = document.createElement('pre');
-  pre.style.whiteSpace = 'pre-wrap';
-  pre.style.wordWrap   = 'break-word';
-  pre.style.fontSize   = fontSize + 'px';
-  pre.style.lineHeight = '1.7';
-  pre.style.color      = '#f0e8d0';
-  pre.style.fontFamily = currentFont;
-  pre.textContent      = applyTranspose(text, transposeVal);
+  pre.style.whiteSpace = 'pre-wrap'; pre.style.wordWrap = 'break-word';
+  pre.style.fontSize = fontSize + 'px'; pre.style.lineHeight = '1.7';
+  pre.style.color = '#f0e8d0'; pre.style.fontFamily = currentFont;
+  pre.textContent = applyTranspose(text, transposeVal);
   content.appendChild(pre);
   scrollPos = 0;
   if (scrollLayer) scrollLayer.style.WebkitTransform = 'translate3d(0,0,0)';
-  stopScroll();
-  updateThumb();
+  stopScroll(); updateThumb();
 }
 
 // ── FONT MENU ────────────────────────────────────────────────
@@ -1552,8 +1643,9 @@ for (var fi = 0; fi < fonts.length; fi++) {
 }
 
 document.getElementById('btn-font').onclick = function() {
-  browserPanel.style.display = 'none';
-  fontMenuEl.style.display = fontMenuEl.style.display === 'block' ? 'none' : 'block';
+  var isOpen = fontMenuEl.style.display === 'block';
+  closeAllPanels();
+  if (!isOpen) fontMenuEl.style.display = 'block';
 };
 
 restoreBookmark();
